@@ -1,0 +1,9 @@
+-r requirements.txt
+flake8
+flake8-black
+jedi
+pylint
+black
+ipython
+pytest
+tox
