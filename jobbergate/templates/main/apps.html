@@ -1,0 +1,16 @@
+{% extends "_base.html" %}
+{% block content %}
+
+<div class="body-content">
+  <div>
+    <h1>Applications</h1>
+    <ul>
+    {% for application in applications %}
+    <a href="{{ url_for('main.app', application=application) }}">{{ application }}</a>
+    {% endfor %}
+    </ul>
+
+  </div>
+</div>
+
+{% endblock %}

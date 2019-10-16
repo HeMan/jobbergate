@@ -1,0 +1,10 @@
+{% extends "_base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+
+<form method="POST" action="{{ url_for('main.app', application=application) }}">
+{{ wtf.quick_form(form) }}
+</form>
+
+{% endblock %}

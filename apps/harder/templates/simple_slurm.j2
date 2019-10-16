@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#SBATCH -J {{ job.jobname }}
+
+/bin/echo Avfully complicated application
+/bin/echo consuming Memory: {{ job.memory }}
+/bin/echo Saving data on: {{ job.scratch }}
