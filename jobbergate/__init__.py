@@ -2,6 +2,7 @@
 
 
 import os
+import jobbergate.cli
 
 from flask import Flask, render_template
 from flask_login import LoginManager
@@ -74,5 +75,8 @@ def create_app(script_info=None):
     @app.shell_context_processor
     def ctx():
         return {"app": app, "db": db}
+
+    for cmd in jobbergate.cli.cmds:
+        app.cli.add_command(cmd)
 
     return app
