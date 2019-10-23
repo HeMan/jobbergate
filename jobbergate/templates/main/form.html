@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<form method="POST" action="{{ url_for('main.app', application=application) }}">
+<form method="POST">
 {{ wtf.quick_form(form) }}
 </form>
 

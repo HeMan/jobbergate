@@ -9,8 +9,13 @@ from flask.cli import with_appcontext
 def _app_factory():
     def _callback(application):
         @with_appcontext
-        def _callbackier():
+        def _callbackier(**kvargs):
             importedlib = importlib.import_module(f"apps.{application}.views")
+
+            outputfile = kvargs["output"]
+            templatefile = (
+                kvargs["template"] or f"apps/{application}/templates/simple_slurm.j2"
+            )
 
             questions = []
 
@@ -90,17 +95,21 @@ def _app_factory():
 
             data = inquirer.prompt(questions)
 
-            print(
-                render_template(
-                    f"apps/{application}/templates/simple_slurm.j2", job=data
-                )
-            ),
+            return outputfile.write(render_template(templatefile, job=data))
 
         return _callbackier
 
     appdir = Path("apps/")
+    default_options = [
+        click.Option(
+            param_decls=("-t", "--template"),
+            required=False,
+            type=click.Path(exists=True),
+        ),
+        click.Argument(param_decls=["output"], type=click.File("w")),
+    ]
     return [
-        click.Command(name=x.name, callback=_callback(x.name))
+        click.Command(name=x.name, callback=_callback(x.name), params=default_options)
         for x in appdir.iterdir()
         if x.is_dir()
     ]
