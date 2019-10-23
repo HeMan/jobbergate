@@ -20,12 +20,16 @@ from wtforms.validators import InputRequired, NumberRange
 main_blueprint = Blueprint("main", __name__)
 
 
-def _form_generator(application):
-
+def _form_generator(application, templates):
     importedlib = importlib.import_module(f"apps.{application}.views")
 
     class QuestioneryForm(FlaskForm):
         pass
+
+    if len(templates) == 1:
+        QuestioneryForm.template = HiddenField(default=templates[0][0])
+    else:
+        QuestioneryForm.template = SelectField("Select template", choices=templates)
 
     for field in importedlib.appform.questions:
         if field["type"] == "Text":
@@ -124,24 +128,24 @@ def apps():
     ]
 
     if appform.validate_on_submit():
-        # TODO: redirect direct to template selection if it has more then one
-        # template
-        return redirect(url_for("main.app", application=appform.data["application"]))
+        application = appform.data["application"]
+        templatedir = Path(f"apps/{application}/templates/")
+        templates = ",".join([template.name for template in templatedir.glob("*.j2")])
+        return redirect(
+            url_for("main.app", application=application, templates=templates)
+        )
 
     return render_template("main/form.html", form=appform)
 
 
-@main_blueprint.route("/app/<application>", methods=["GET", "POST"])
-@main_blueprint.route("/app/<application>/<template>", methods=["GET", "POST"])
-def app(application, template=None):
-    questionsform = _form_generator(application)
-    if not template:
-        if len(list(Path(f"apps/{application}/templates/").glob("*.j2"))) > 1:
-            return redirect(url_for("main.select_template", application=application))
-
-        template = f"simple_slurm.j2"
+@main_blueprint.route("/app/<application>/<templates>", methods=["GET", "POST"])
+def app(application, templates):
+    templates = [(template, template) for template in templates.split(",")]
+    questionsform = _form_generator(application, templates)
 
     if questionsform.validate_on_submit():
+        print(questionsform.data)
+        template = questionsform.data["template"]
         return Response(
             render_template(
                 f"apps/{application}/templates/{template}", job=questionsform.data
@@ -151,31 +155,5 @@ def app(application, template=None):
         )
 
     return render_template(
-        "main/form.html", form=questionsform, application=application, template=template
+        "main/form.html", form=questionsform, application=application
     )
-
-
-@main_blueprint.route("/select_template/<application>", methods=["GET", "POST"])
-def select_template(application):
-    class TemplateForm(FlaskForm):
-        template = SelectField("Choose template")
-        application = HiddenField("application")
-        submit = SubmitField()
-
-    templateform = TemplateForm(application=application)
-
-    templatedir = Path(f"apps/{application}/templates")
-    templateform.template.choices = [
-        (x.name, x.stem) for x in templatedir.iterdir() if x.is_file()
-    ]
-
-    if templateform.validate_on_submit():
-        return redirect(
-            url_for(
-                "main.app",
-                application=templateform.data["application"],
-                template=templateform.data["template"],
-            )
-        )
-
-    return render_template("main/form.html", form=templateform)
