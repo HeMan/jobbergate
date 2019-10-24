@@ -25,7 +25,7 @@ migrate = Migrate()
 def create_app(script_info=None):
 
     # instantiate the app
-    app = Flask(__name__, template_folder="templates", static_folder="static")
+    app = Flask(__name__, template_folder="../apps", static_folder="static")
 
     # set config
     app_settings = os.getenv("APP_SETTINGS", "jobbergate.config.ProductionConfig")

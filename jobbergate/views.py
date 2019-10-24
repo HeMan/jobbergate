@@ -17,7 +17,7 @@ from wtforms.fields import (
 from wtforms.validators import InputRequired, NumberRange
 
 
-main_blueprint = Blueprint("main", __name__)
+main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
 
 def _form_generator(application, templates):
@@ -144,11 +144,10 @@ def app(application, templates):
     questionsform = _form_generator(application, templates)
 
     if questionsform.validate_on_submit():
-        print(questionsform.data)
         template = questionsform.data["template"]
         return Response(
             render_template(
-                f"apps/{application}/templates/{template}", job=questionsform.data
+                f"{application}/templates/{template}", job=questionsform.data
             ),
             mimetype="text/x-shellscript",
             headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
