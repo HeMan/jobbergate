@@ -3,6 +3,7 @@ black
 bumpversion
 flake8
 flake8-black
+flask-shell-ipython
 ipython
 jedi
 pylint
