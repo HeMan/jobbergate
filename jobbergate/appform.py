@@ -1,9 +1,11 @@
 """Abstraction layer for questions"""
 
 questions = []
+workflows = []
 
 
 def Text(variablename, message, default=None):
+    """Adds a text question"""
     questions.append(
         {
             "type": "Text",
@@ -15,6 +17,7 @@ def Text(variablename, message, default=None):
 
 
 def Integer(variablename, message, minval=None, maxval=None, default=None):
+    """Adds a integer question. Supports min and max checks"""
     questions.append(
         {
             "type": "Integer",
@@ -28,6 +31,7 @@ def Integer(variablename, message, minval=None, maxval=None, default=None):
 
 
 def List(variablename, message, choices, default=None):
+    """Adds a list to select from"""
     questions.append(
         {
             "type": "List",
@@ -40,6 +44,8 @@ def List(variablename, message, choices, default=None):
 
 
 def Directory(variablename, message, default=None, exists=None):
+    """Adds a question for path. Checks that given path is directory if it
+    should exist"""
     questions.append(
         {
             "type": "Directory",
@@ -52,6 +58,8 @@ def Directory(variablename, message, default=None, exists=None):
 
 
 def File(variablename, message, default=None, exists=None):
+    """Adds a question for path. Checks that given path is a file if it should
+    exist"""
     questions.append(
         {
             "type": "File",
@@ -64,6 +72,7 @@ def File(variablename, message, default=None, exists=None):
 
 
 def Checkbox(variablename, message, choices, default=None):
+    """Adds a multiple choice list"""
     questions.append(
         {
             "type": "Checkbox",
@@ -76,6 +85,7 @@ def Checkbox(variablename, message, choices, default=None):
 
 
 def Confirm(variablename, message, default=None):
+    """Adds a boolean question which returns true or false"""
     questions.append(
         {
             "type": "Confirm",
@@ -84,3 +94,14 @@ def Confirm(variablename, message, default=None):
             "default": default,
         }
     )
+
+
+class workflow:
+    """Decorator for workflows. Adds an workflow question and all questions
+    added in the decorated question is asked after selecting workflow"""
+
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, workflowfunction):
+        workflows.append((self.message or workflowfunction.__name__, workflowfunction))
