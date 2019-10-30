@@ -25,13 +25,13 @@ def ask_questions(fields):
             minval = field["minval"]
             maxval = field["maxval"]
 
-            def validate(_, x):
+            def validate(_, value):
                 if minval is not None and maxval is not None:
-                    return minval <= int(x) <= maxval
+                    return minval <= int(value) <= maxval
                 if minval is not None:
-                    return minval <= int(x)
+                    return minval <= int(value)
                 if maxval is not None:
-                    return int(x) <= maxval
+                    return int(value) <= maxval
                 return True
 
             questions.append(
@@ -97,37 +97,86 @@ def ask_questions(fields):
 
 
 def _app_factory():
+    """App factory. Looks in app directory and creates CLI for each of the
+    directories"""
+
     def _callback(application):
+        """Callback for the cli"""
+
         @with_appcontext
-        def _callbackier(**kvargs):
-            importedlib = importlib.import_module(f"apps.{application}.views")
+        def _wrapper(**kvargs):
+            """The callback needs to be wrapped"""
+
+            # FIXME: make app dir configurable
+            appview = importlib.import_module(f"apps.{application}.views")
+
+            # Check if the app has a controller file
+            try:
+                # FIXME: make app dir configurable
+                appcontroller = importlib.import_module(
+                    f"apps.{application}.controller"
+                )
+                prefuncs = appcontroller.workflow.prefuncs
+                postfuncs = appcontroller.workflow.postfuncs
+            except ModuleNotFoundError:
+                prefuncs = {}
+                postfuncs = {}
 
             outputfile = kvargs["output"]
+            # FIXME: make app dir configurable
             templatefile = (
                 kvargs["template"] or f"apps/{application}/templates/simple_slurm.j2"
             )
-            data = ask_questions(importedlib.appform.questions)
 
-            if importedlib.appform.workflows:
+            data = {}
+            # If the is a pre_-function in the controller, run that before all
+            # questions
+            if "" in prefuncs.keys():
+                data.update(prefuncs[""]() or {})
+
+            # Ask the questions
+            data.update(ask_questions(appview.appform.questions))
+
+            # Check if workflows is defined
+            if appview.appform.workflows:
                 workflows = [
                     inquirer.List(
                         "workflow",
                         message="What workflow should be used",
-                        choices=importedlib.appform.workflows,
+                        choices=appview.appform.workflows.keys(),
                     )
                 ]
-                wfdata = inquirer.prompt(workflows)
 
-                importedlib.appform.questions = []
-                wfquestions = wfdata["workflow"]
+                wfdata = inquirer.prompt(workflows)
+                workflow = wfdata["workflow"]
+
+                # If selected workflow have a pre_-function, run that now
+                if workflow in prefuncs.keys():
+                    data.update(prefuncs[workflow](data) or {})
+
+                appview.appform.questions = []
+
+                # "Instantiate" workflow questions
+                wfquestions = appview.appform.workflows[workflow]
                 wfquestions()
-                data.update(ask_questions(importedlib.appform.questions))
+
+                # Ask workflow questions
+                data.update(ask_questions(appview.appform.questions))
+
+                # If selected workflow have a post_-function, run that now
+                if workflow in postfuncs.keys():
+                    data.update(postfuncs[workflow](data) or {})
+
+            # If there is a global post_-funtion, run that now
+            if "" in postfuncs.keys():
+                data.update(postfuncs[""](data) or {})
 
             return outputfile.write(render_template(templatefile, job=data))
 
-        return _callbackier
+        return _wrapper
 
-    appdir = Path("apps/")
+    # FIXME: make app dir configurable
+    apps = [x.name for x in Path("apps/").iterdir() if x.is_dir()]
     default_options = [
         click.Option(
             param_decls=("-t", "--template"),
@@ -137,9 +186,8 @@ def _app_factory():
         click.Argument(param_decls=["output"], type=click.File("w")),
     ]
     return [
-        click.Command(name=x.name, callback=_callback(x.name), params=default_options)
-        for x in appdir.iterdir()
-        if x.is_dir()
+        click.Command(name=app, callback=_callback(app), params=default_options)
+        for app in apps
     ]
 
 

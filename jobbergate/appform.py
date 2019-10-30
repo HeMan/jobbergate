@@ -1,7 +1,7 @@
 """Abstraction layer for questions"""
 
 questions = []
-workflows = []
+workflows = {}
 
 
 def Text(variablename, message, default=None):
@@ -104,4 +104,4 @@ class workflow:
         self.message = message
 
     def __call__(self, workflowfunction):
-        workflows.append((self.message or workflowfunction.__name__, workflowfunction))
+        workflows[self.message or workflowfunction.__name__] = workflowfunction
