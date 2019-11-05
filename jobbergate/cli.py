@@ -1,10 +1,15 @@
 """Creates dynamic CLI's for all apps"""
-import importlib
 from pathlib import Path
 import click
+import yaml
+import importlib
 import inquirer
-from flask import render_template
+from flask import render_template_string
 from flask.cli import with_appcontext
+
+
+with open("jobbergate.yaml") as ymlfile:
+    config = yaml.safe_load(ymlfile)
 
 
 def ask_questions(fields):
@@ -96,6 +101,16 @@ def ask_questions(fields):
     return inquirer.prompt(questions)
 
 
+def fullpath_import(path, lib):
+    app_path = f"{config['apps']['path']}/{path}/{lib}.py"
+    spec = importlib.util.spec_from_file_location(".", app_path)
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module
+
+
 def _app_factory():
     """App factory. Looks in app directory and creates CLI for each of the
     directories"""
@@ -107,25 +122,23 @@ def _app_factory():
         def _wrapper(**kvargs):
             """The callback needs to be wrapped"""
 
-            # FIXME: make app dir configurable
-            appview = importlib.import_module(f"apps.{application}.views")
+            appview = fullpath_import(f"{application}", "views")
 
             # Check if the app has a controller file
             try:
-                # FIXME: make app dir configurable
-                appcontroller = importlib.import_module(
-                    f"apps.{application}.controller"
-                )
+                appcontroller = fullpath_import(f"{application}", "controller")
+
                 prefuncs = appcontroller.workflow.prefuncs
                 postfuncs = appcontroller.workflow.postfuncs
-            except ModuleNotFoundError:
+            except FileNotFoundError:
                 prefuncs = {}
                 postfuncs = {}
 
             outputfile = kvargs["output"]
-            # FIXME: make app dir configurable
+
             templatefile = (
-                kvargs["template"] or f"apps/{application}/templates/simple_slurm.j2"
+                kvargs["template"]
+                or f"{config['apps']['path']}/{application}/templates/simple_slurm.j2"
             )
 
             data = {}
@@ -170,13 +183,14 @@ def _app_factory():
             # If there is a global post_-funtion, run that now
             if "" in postfuncs.keys():
                 data.update(postfuncs[""](data) or {})
-
-            return outputfile.write(render_template(templatefile, job=data))
+            with open(templatefile, "r") as template:
+                return outputfile.write(
+                    render_template_string(template.read(), job=data)
+                )
 
         return _wrapper
 
-    # FIXME: make app dir configurable
-    apps = [x.name for x in Path("apps/").iterdir() if x.is_dir()]
+    apps = [x.name for x in Path(config["apps"]["path"]).iterdir() if x.is_dir()]
     default_options = [
         click.Option(
             param_decls=("-t", "--template"),
