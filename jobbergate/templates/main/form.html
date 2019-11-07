@@ -3,8 +3,18 @@
 
 {% block content %}
 
-<form method="POST">
-{{ wtf.quick_form(form) }}
+<form method="POST" role="form" class="form">
+    {{ form.hidden_tag() }}
+    {{ wtf.form_errors(form, hiddens="only") }}
+    {% for entry_form in form %}
+        {% if 'hidden' not in entry_form.flags %}
+            {{ wtf.form_field(entry_form) }}
+        {% endif %}
+    {% endfor %}
+
+    {% if placeholder is defined %}
+        <div name="{{ placeholder }}"></div>
+    {% endif %}
 </form>
 
 {% endblock %}
