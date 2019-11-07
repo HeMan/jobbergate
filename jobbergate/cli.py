@@ -1,15 +1,11 @@
 """Creates dynamic CLI's for all apps"""
 from pathlib import Path
 import click
-import yaml
-import importlib
 import inquirer
 from flask import render_template_string
 from flask.cli import with_appcontext
 
-
-with open("jobbergate.yaml") as ymlfile:
-    config = yaml.safe_load(ymlfile)
+from jobbergate.lib import config, fullpath_import
 
 
 def ask_questions(fields):
@@ -99,16 +95,6 @@ def ask_questions(fields):
                 )
             )
     return inquirer.prompt(questions)
-
-
-def fullpath_import(path, lib):
-    app_path = f"{config['apps']['path']}/{path}/{lib}.py"
-    spec = importlib.util.spec_from_file_location(".", app_path)
-
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-
-    return module
 
 
 def _app_factory():
