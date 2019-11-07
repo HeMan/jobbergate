@@ -1,6 +1,8 @@
 """Abstraction layer for questions"""
 
-questions = []
+from collections import deque
+
+questions = deque()
 workflows = {}
 
 

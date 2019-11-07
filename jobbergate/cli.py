@@ -1,4 +1,5 @@
 """Creates dynamic CLI's for all apps"""
+from collections import deque
 from pathlib import Path
 import click
 import inquirer
@@ -12,7 +13,8 @@ def ask_questions(fields):
     """Asks the questions from all the fields"""
     questions = []
 
-    for field in fields:
+    while fields:
+        field = fields.popleft()
         if field["type"] == "Text":
             questions.append(
                 inquirer.Text(
@@ -153,7 +155,7 @@ def _app_factory():
                 if workflow in prefuncs.keys():
                     data.update(prefuncs[workflow](data) or {})
 
-                appview.appform.questions = []
+                appview.appform.questions = deque()
 
                 # "Instantiate" workflow questions
                 wfquestions = appview.appform.workflows[workflow]
@@ -165,6 +167,7 @@ def _app_factory():
                 # If selected workflow have a post_-function, run that now
                 if workflow in postfuncs.keys():
                     data.update(postfuncs[workflow](data) or {})
+                appview.appform.workflows = {}
 
             # If there is a global post_-funtion, run that now
             if "" in postfuncs.keys():
