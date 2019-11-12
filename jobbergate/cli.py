@@ -3,6 +3,7 @@ from collections import deque
 from pathlib import Path
 import click
 import inquirer
+import yaml
 from flask import render_template_string
 from flask.cli import with_appcontext
 
@@ -112,6 +113,8 @@ def _app_factory():
 
             appview = fullpath_import(f"{application}", "views")
 
+            data = {}
+
             # Check if the app has a controller file
             try:
                 appcontroller = fullpath_import(f"{application}", "controller")
@@ -124,16 +127,18 @@ def _app_factory():
 
             outputfile = kvargs["output"]
 
-            templatefile = (
-                kvargs["template"]
-                or f"{config['apps']['path']}/{application}/templates/simple_slurm.j2"
-            )
+            try:
+                with open(
+                    f"{config['apps']['path']}/{application}/config.yaml", "r"
+                ) as ymlfile:
+                    data.update(yaml.safe_load(ymlfile))
+            except FileNotFoundError:
+                pass
 
-            data = {}
             # If the is a pre_-function in the controller, run that before all
             # questions
             if "" in prefuncs.keys():
-                data.update(prefuncs[""]() or {})
+                data.update(prefuncs[""](data) or {})
 
             # Ask the questions
             data.update(ask_questions(appview.appform.questions))
@@ -159,7 +164,7 @@ def _app_factory():
 
                 # "Instantiate" workflow questions
                 wfquestions = appview.appform.workflows[workflow]
-                wfquestions()
+                wfquestions(data)
 
                 # Ask workflow questions
                 data.update(ask_questions(appview.appform.questions))
@@ -168,6 +173,14 @@ def _app_factory():
                 if workflow in postfuncs.keys():
                     data.update(postfuncs[workflow](data) or {})
                 appview.appform.workflows = {}
+
+            template = data.get("template", None) or data.get(
+                "default_template", "job_template.j2"
+            )
+            templatefile = (
+                kvargs["template"]
+                or f"{config['apps']['path']}/{application}/templates/{template}"
+            )
 
             # If there is a global post_-funtion, run that now
             if "" in postfuncs.keys():
