@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 import inquirer
 import yaml
-from flask import render_template_string
+from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
 
 from jobbergate.lib import config, fullpath_import
@@ -174,21 +174,22 @@ def _app_factory():
                     data.update(postfuncs[workflow](data) or {})
                 appview.appform.workflows = {}
 
-            template = data.get("template", None) or data.get(
-                "default_template", "job_template.j2"
-            )
-            templatefile = (
-                kvargs["template"]
-                or f"{config['apps']['path']}/{application}/templates/{template}"
-            )
+            if kvargs["template"]:
+                templatedir = str(Path(kvargs["template"]).parent)
+                template = Path(kvargs["template"]).name
+            else:
+                templatedir = f"{config['apps']['path']}/{application}/templates/"
+                template = data.get("template", None) or data.get(
+                    "default_template", "job_template.j2"
+                )
 
             # If there is a global post_-funtion, run that now
             if "" in postfuncs.keys():
                 data.update(postfuncs[""](data) or {})
-            with open(templatefile, "r") as template:
-                return outputfile.write(
-                    render_template_string(template.read(), job=data)
-                )
+
+            jinjaenv = Environment(loader=FileSystemLoader(templatedir))
+            jinjatemplate = jinjaenv.get_template(template)
+            return outputfile.write(jinjatemplate.render(job=data))
 
         return _wrapper
 
