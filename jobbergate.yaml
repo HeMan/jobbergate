@@ -1,0 +1,9 @@
+---
+slurm:
+  shared_scratch: /cluster/scratch/$SLURM_JOB_USER/$SLURM_JOB_ID
+  partitions:
+    - partition1
+  default_partition: 'partition1'
+
+apps:
+  path: apps/
