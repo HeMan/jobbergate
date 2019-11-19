@@ -1,6 +1,8 @@
 """Abstraction layer for questions"""
 
 from collections import deque
+from functools import partial, wraps
+
 
 questions = deque()
 workflows = {}
@@ -98,12 +100,28 @@ def Confirm(variablename, message, default=None):
     )
 
 
-class workflow:
+def workflow(func=None, *, message=None):
     """Decorator for workflows. Adds an workflow question and all questions
-    added in the decorated question is asked after selecting workflow"""
+    added in the decorated question is asked after selecting workflow.
 
-    def __init__(self, message=None):
-        self.message = message
+    # Add a workflow named debug:
+    @workflow
+    def debug(data):
+        appform.File("debugfile", "Name of debug file")
 
-    def __call__(self, workflowfunction):
-        workflows[self.message or workflowfunction.__name__] = workflowfunction
+    # Add a workflow with longer name
+    @workflow(message="Secondary Eigen step")
+    def 2ndstep(data):
+        appform.Text("eigendata", "Definition of eigendata")
+    """
+
+    if func is None:
+        return partial(workflow, message=message)
+
+    @wraps(func)
+    def wrapper(*args, **kvargs):
+        return func(*args, **kvargs)
+
+    workflows[message or func.__name__] = func
+
+    return wrapper
