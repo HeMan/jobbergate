@@ -158,8 +158,7 @@ def apps():
 
     if appform.validate_on_submit():
         application = appform.data["application"]
-        # FIXME: make app dir configurable
-        templatedir = Path(f"apps/{application}/templates/")
+        templatedir = Path(f"{config['apps']['path']}/{application}/templates/")
         templates = ",".join([template.name for template in templatedir.glob("*.j2")])
         return redirect(
             url_for("main.app", application=application, templates=templates)
@@ -214,7 +213,6 @@ def app(application, templates):
     )
 
 
-# FIXME: Add code for workflow questions
 @main_blueprint.route("/workflow/<application>/<workflow>", methods=["GET", "POST"])
 def renderworkflow(application, workflow):
     appview = fullpath_import(f"{application}", "views")
