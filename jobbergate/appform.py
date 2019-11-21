@@ -100,7 +100,7 @@ def Confirm(variablename, message, default=None):
     )
 
 
-def workflow(func=None, *, message=None):
+def workflow(func=None, *, name=None):
     """Decorator for workflows. Adds an workflow question and all questions
     added in the decorated question is asked after selecting workflow.
 
@@ -110,18 +110,18 @@ def workflow(func=None, *, message=None):
         appform.File("debugfile", "Name of debug file")
 
     # Add a workflow with longer name
-    @workflow(message="Secondary Eigen step")
+    @workflow(name="Secondary Eigen step")
     def 2ndstep(data):
         appform.Text("eigendata", "Definition of eigendata")
     """
 
     if func is None:
-        return partial(workflow, message=message)
+        return partial(workflow, name=name)
 
     @wraps(func)
     def wrapper(*args, **kvargs):
         return func(*args, **kvargs)
 
-    workflows[message or func.__name__] = func
+    workflows[name or func.__name__] = func
 
     return wrapper
