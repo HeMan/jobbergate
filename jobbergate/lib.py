@@ -1,4 +1,5 @@
 import importlib
+import sys
 import yaml
 
 with open("jobbergate.yaml") as ymlfile:
@@ -6,9 +7,10 @@ with open("jobbergate.yaml") as ymlfile:
 
 
 def fullpath_import(path, lib):
-    app_path = f"{config['apps']['path']}/{path}/{lib}.py"
-    spec = importlib.util.spec_from_file_location(".", app_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    """Imports a file from absolute path."""
+    old_syspath = sys.path
+    sys.path.append(f"{config['apps']['path']}/{path}/")
+    module = importlib.import_module(lib)
+    sys.path = old_syspath
 
     return module
