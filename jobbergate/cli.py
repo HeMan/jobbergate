@@ -1,5 +1,4 @@
 """Creates dynamic CLI's for all apps"""
-from collections import deque
 from pathlib import Path
 import click
 import inquirer
@@ -8,6 +7,103 @@ from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
 
 from jobbergate.lib import config, fullpath_import
+from jobbergate import appform
+
+
+def flatten(li):
+    out = []
+    for item in li:
+        if isinstance(item, (list, tuple)):
+            out.extend(flatten(item))
+        else:
+            out.append(item)
+    return out
+
+
+def parse_field(field, ignore=None):
+    if isinstance(field, appform.Text):
+        return inquirer.Text(
+            field.variablename,
+            message=field.message,
+            default=field.default,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.Integer):
+        return inquirer.Text(
+            field.variablename,
+            message=field.message,
+            default=field.default,
+            validate=field.validate,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.List):
+        return inquirer.List(
+            field.variablename,
+            message=field.message,
+            choices=field.choices,
+            default=field.default,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.Directory):
+        return inquirer.Path(
+            field.variablename,
+            message=field.message,
+            path_type=inquirer.Path.DIRECTORY,
+            default=field.default,
+            exists=field.exists,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.File):
+        return inquirer.Path(
+            field.variablename,
+            message=field.message,
+            path_type=inquirer.Path.FILE,
+            default=field.default,
+            exists=field.exists,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.Checkbox):
+        return inquirer.Checkbox(
+            field.variablename,
+            message=field.message,
+            choices=field.choices,
+            default=field.default,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.Confirm):
+        return inquirer.Confirm(
+            field.variablename,
+            message=field.message,
+            default=field.default,
+            ignore=ignore,
+        )
+
+    if isinstance(field, appform.BooleanList):
+        retval = [
+            inquirer.Confirm(
+                field.variablename,
+                message=field.message,
+                default=field.default,
+                ignore=ignore,
+            )
+        ]
+
+        if field.whenfalse:
+            retval.extend(
+                [parse_field(wf, ignore=field.ignore) for wf in field.whenfalse]
+            )
+        if field.whentrue:
+            retval.extend(
+                [parse_field(wt, ignore=field.noignore) for wt in field.whentrue]
+            )
+
+        return retval
 
 
 def ask_questions(fields):
@@ -15,89 +111,11 @@ def ask_questions(fields):
     questions = []
 
     while fields:
-        field = fields.popleft()
-        if field["type"] == "Text":
-            questions.append(
-                inquirer.Text(
-                    field["variablename"],
-                    message=field["message"],
-                    default=field["default"],
-                )
-            )
+        field = fields.pop(0)
+        question = parse_field(field)
+        questions.append(question)
 
-        if field["type"] == "Integer":
-            minval = field["minval"]
-            maxval = field["maxval"]
-
-            def validate(_, value):
-                if minval is not None and maxval is not None:
-                    return minval <= int(value) <= maxval
-                if minval is not None:
-                    return minval <= int(value)
-                if maxval is not None:
-                    return int(value) <= maxval
-                return True
-
-            questions.append(
-                inquirer.Text(
-                    field["variablename"],
-                    message=field["message"],
-                    default=field["default"],
-                    validate=validate,
-                )
-            )
-
-        if field["type"] == "List":
-            questions.append(
-                inquirer.List(
-                    field["variablename"],
-                    message=field["message"],
-                    choices=field["choices"],
-                    default=field["default"],
-                )
-            )
-
-        if field["type"] == "Directory":
-            questions.append(
-                inquirer.Path(
-                    field["variablename"],
-                    message=field["message"],
-                    path_type=inquirer.Path.DIRECTORY,
-                    default=field["default"],
-                    exists=field["exists"],
-                )
-            )
-
-        if field["type"] == "File":
-            questions.append(
-                inquirer.Path(
-                    field["variablename"],
-                    message=field["message"],
-                    path_type=inquirer.Path.FILE,
-                    default=field["default"],
-                    exists=field["exists"],
-                )
-            )
-
-        if field["type"] == "Checkbox":
-            questions.append(
-                inquirer.Checkbox(
-                    field["variablename"],
-                    message=field["message"],
-                    choices=field["choices"],
-                    default=field["default"],
-                )
-            )
-
-        if field["type"] == "Confirm":
-            questions.append(
-                inquirer.Confirm(
-                    field["variablename"],
-                    message=field["message"],
-                    default=field["default"],
-                )
-            )
-    return inquirer.prompt(questions)
+    return inquirer.prompt(flatten(questions))
 
 
 def _app_factory():
@@ -121,7 +139,7 @@ def _app_factory():
 
                 prefuncs = appcontroller.workflow.prefuncs
                 postfuncs = appcontroller.workflow.postfuncs
-            except FileNotFoundError:
+            except ModuleNotFoundError:
                 prefuncs = {}
                 postfuncs = {}
 
@@ -141,7 +159,8 @@ def _app_factory():
                 data.update(prefuncs[""](data) or {})
 
             # Ask the questions
-            data.update(ask_questions(appview.appform.questions))
+            questions = appview.mainflow(data)
+            data.update(ask_questions(questions))
 
             # Check if workflows is defined
             if appview.appform.workflows:
@@ -160,14 +179,12 @@ def _app_factory():
                 if workflow in prefuncs.keys():
                     data.update(prefuncs[workflow](data) or {})
 
-                appview.appform.questions = deque()
-
                 # "Instantiate" workflow questions
                 wfquestions = appview.appform.workflows[workflow]
-                wfquestions(data)
+                questions = wfquestions(data)
 
                 # Ask workflow questions
-                data.update(ask_questions(appview.appform.questions))
+                data.update(ask_questions(questions))
 
                 # If selected workflow have a post_-function, run that now
                 if workflow in postfuncs.keys():
