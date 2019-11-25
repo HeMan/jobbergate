@@ -121,7 +121,7 @@ def _app_factory():
 
                 prefuncs = appcontroller.workflow.prefuncs
                 postfuncs = appcontroller.workflow.postfuncs
-            except FileNotFoundError:
+            except ModuleNotFoundError:
                 prefuncs = {}
                 postfuncs = {}
 
