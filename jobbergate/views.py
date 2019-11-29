@@ -17,7 +17,6 @@ from flask import (
 from flask_wtf import FlaskForm
 from wtforms.fields import (
     BooleanField,
-    Field,
     HiddenField,
     IntegerField,
     SelectField,
@@ -25,11 +24,8 @@ from wtforms.fields import (
     StringField,
     SubmitField,
     FormField,
-    FieldList,
 )
 from wtforms.validators import InputRequired, NumberRange
-from wtforms.widgets import HTMLString, html_params
-from wtforms.utils import unset_value
 
 from jobbergate.lib import config, fullpath_import
 from jobbergate import appform
