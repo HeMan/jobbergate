@@ -1,5 +1,6 @@
 """Creates dynamic CLI's for all apps"""
 from pathlib import Path
+import json
 import click
 import inquirer
 import yaml
@@ -106,16 +107,27 @@ def parse_field(field, ignore=None):
         return retval
 
 
-def ask_questions(fields):
+def ask_questions(fields, answerfile):
     """Asks the questions from all the fields"""
     questions = []
+    questionstoask = []
+    retval = {}
 
     while fields:
         field = fields.pop(0)
         question = parse_field(field)
         questions.append(question)
 
-    return inquirer.prompt(flatten(questions))
+    # Check if questions has already been answered
+    for question in flatten(questions):
+        if question.name in answerfile:
+            retval.update({question.name: answerfile[question.name]})
+        else:
+            questionstoask.append(question)
+
+    retval.update(inquirer.prompt(questionstoask))
+
+    return retval
 
 
 def _app_factory():
@@ -132,7 +144,12 @@ def _app_factory():
             appview = fullpath_import(f"{application}", "views")
 
             data = {}
-
+            saveanswers = kvargs["saveanswers"]
+            if kvargs["answerfile"]:
+                with open(kvargs["answerfile"]) as jsonfile:
+                    answerfile = json.load(jsonfile)
+            else:
+                answerfile = None
             # Check if the app has a controller file
             try:
                 appcontroller = fullpath_import(f"{application}", "controller")
@@ -160,20 +177,29 @@ def _app_factory():
 
             # Ask the questions
             questions = appview.mainflow(data)
-            data.update(ask_questions(questions))
+            answers = ask_questions(questions, answerfile)
+            if saveanswers:
+                savedanswers = answers
 
+            data.update(answers)
             # Check if workflows is defined
             if appview.appform.workflows:
-                workflows = [
-                    inquirer.List(
-                        "workflow",
-                        message="What workflow should be used",
-                        choices=appview.appform.workflows.keys(),
-                    )
-                ]
+                if "workflow" in answerfile:
+                    workflow = answerfile["workflow"]
+                else:
+                    workflows = [
+                        inquirer.List(
+                            "workflow",
+                            message="What workflow should be used",
+                            choices=appview.appform.workflows.keys(),
+                        )
+                    ]
 
-                wfdata = inquirer.prompt(workflows)
-                workflow = wfdata["workflow"]
+                    wfdata = inquirer.prompt(workflows)
+                    workflow = wfdata["workflow"]
+
+                if saveanswers:
+                    savedanswers.update({"workflow": workflow})
 
                 # If selected workflow have a pre_-function, run that now
                 if workflow in prefuncs.keys():
@@ -184,7 +210,10 @@ def _app_factory():
                 questions = wfquestions(data)
 
                 # Ask workflow questions
-                data.update(ask_questions(questions))
+                answers = ask_questions(questions, answerfile)
+                if saveanswers:
+                    savedanswers.update(answers)
+                data.update(answers)
 
                 # If selected workflow have a post_-function, run that now
                 if workflow in postfuncs.keys():
@@ -204,6 +233,10 @@ def _app_factory():
             if "" in postfuncs.keys():
                 data.update(postfuncs[""](data) or {})
 
+            if saveanswers:
+                with open(kvargs["saveanswers"], "w") as jsonfile:
+                    json.dump(savedanswers, jsonfile)
+
             jinjaenv = Environment(loader=FileSystemLoader(templatedir))
             jinjatemplate = jinjaenv.get_template(template)
             return outputfile.write(jinjatemplate.render(job=data))
@@ -214,13 +247,36 @@ def _app_factory():
     default_options = [
         click.Option(
             param_decls=("-t", "--template"),
+            help="Full path to template file",
             required=False,
             type=click.Path(exists=True),
         ),
+        click.Option(
+            param_decls=("-a", "--answerfile"),
+            help="Full path to pre-populate answer file.",
+            required=False,
+            type=click.Path(exists=True),
+        ),
+        click.Option(
+            param_decls=("-s", "--saveanswers"),
+            help="Creates a pre-poulated answer file",
+            required=False,
+            type=click.Path(),
+        ),
         click.Argument(param_decls=["output"], type=click.File("w")),
     ]
+    readme = {}
+    for app in apps:
+        try:
+            with open(f"{config['apps']['path']}/{app}/README") as f:
+                readme[app] = f.read()
+        except FileNotFoundError:
+            readme[app] = ""
+
     return [
-        click.Command(name=app, callback=_callback(app), params=default_options)
+        click.Command(
+            name=app, help=readme[app], callback=_callback(app), params=default_options
+        )
         for app in apps
     ]
 
