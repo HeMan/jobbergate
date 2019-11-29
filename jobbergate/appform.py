@@ -8,96 +8,74 @@ questions = deque()
 workflows = {}
 
 
-def Text(variablename, message, default=None):
-    """Adds a text question"""
-    questions.append(
-        {
-            "type": "Text",
-            "variablename": variablename,
-            "message": message,
-            "default": default,
-        }
-    )
+class QuestionBase:
+    def __init__(self, variablename, message, default):
+        self.variablename = variablename
+        self.message = message
+        self.default = default
 
 
-def Integer(variablename, message, minval=None, maxval=None, default=None):
-    """Adds a integer question. Supports min and max checks"""
-    questions.append(
-        {
-            "type": "Integer",
-            "variablename": variablename,
-            "message": message,
-            "minval": minval,
-            "maxval": maxval,
-            "default": default,
-        }
-    )
+class Text(QuestionBase):
+    def __init__(self, variablename, message, default=None):
+        super().__init__(variablename, message, default)
 
 
-def List(variablename, message, choices, default=None):
-    """Adds a list to select from"""
-    questions.append(
-        {
-            "type": "List",
-            "variablename": variablename,
-            "message": message,
-            "choices": choices,
-            "default": default,
-        }
-    )
+class Integer(QuestionBase):
+    def __init__(self, variablename, message, minval=None, maxval=None, default=None):
+        super().__init__(variablename, message, default)
+        self.maxval = maxval
+        self.minval = minval
+
+    def validate(self, _, value):
+        if self.minval is not None and self.maxval is not None:
+            return self.minval <= int(value) <= self.maxval
+        if self.minval is not None:
+            return self.minval <= int(value)
+        if self.maxval is not None:
+            return int(value) <= self.maxval
+        return True
 
 
-def Directory(variablename, message, default=None, exists=None):
-    """Adds a question for path. Checks that given path is directory if it
-    should exist"""
-    questions.append(
-        {
-            "type": "Directory",
-            "variablename": variablename,
-            "message": message,
-            "default": default,
-            "exists": exists,
-        }
-    )
+class List(QuestionBase):
+    def __init__(self, variablename, message, choices, default=None):
+        super().__init__(variablename, message, default)
+        self.choices = choices
 
 
-def File(variablename, message, default=None, exists=None):
-    """Adds a question for path. Checks that given path is a file if it should
-    exist"""
-    questions.append(
-        {
-            "type": "File",
-            "variablename": variablename,
-            "message": message,
-            "default": default,
-            "exists": exists,
-        }
-    )
+class Directory(QuestionBase):
+    def __init__(self, variablename, message, default=None, exists=None):
+        super().__init__(variablename, message, default)
+        self.exists = exists
 
 
-def Checkbox(variablename, message, choices, default=None):
-    """Adds a multiple choice list"""
-    questions.append(
-        {
-            "type": "Checkbox",
-            "variablename": variablename,
-            "message": message,
-            "choices": choices,
-            "default": default,
-        }
-    )
+class File(QuestionBase):
+    def __init__(self, variablename, message, default=None, exists=None):
+        super().__init__(variablename, message, default)
+        self.exists = exists
 
 
-def Confirm(variablename, message, default=None):
-    """Adds a boolean question which returns true or false"""
-    questions.append(
-        {
-            "type": "Confirm",
-            "variablename": variablename,
-            "message": message,
-            "default": default,
-        }
-    )
+class Checkbox(QuestionBase):
+    def __init__(self, variablename, message, choices, default=None):
+        super().__init__(variablename, message, default)
+        self.choices = choices
+
+
+class Confirm(QuestionBase):
+    def __init__(self, variablename, message, default=None):
+        super().__init__(variablename, message, default)
+
+
+class BooleanList(QuestionBase):
+    def __init__(
+        self, variablename, message, default=None, whentrue=None, whenfalse=None
+    ):
+        super().__init__(variablename, message, default)
+        if whentrue is None and whenfalse is None:
+            raise ValueError("Empty questions lists")
+        self.whentrue = whentrue
+        self.whenfalse = whenfalse
+        self.ignore = lambda a: a[self.variablename]
+        self.noignore = lambda a: not a[self.variablename]
 
 
 def workflow(func=None, *, name=None):

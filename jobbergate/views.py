@@ -23,15 +23,135 @@ from wtforms.fields import (
     SelectMultipleField,
     StringField,
     SubmitField,
+    FormField,
 )
 from wtforms.validators import InputRequired, NumberRange
 
 from jobbergate.lib import config, fullpath_import
+from jobbergate import appform
 
 main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
 
-def _form_generator(application, templates, appform):
+def parse_field(form, field, render_kw=None):
+    print(field.variablename, render_kw)
+    print(type(field))
+    if isinstance(field, appform.Text):
+        setattr(
+            form,
+            field.variablename,
+            StringField(
+                field.message,
+                validators=[InputRequired()],
+                default=field.default,
+                render_kw=render_kw,
+            ),
+        )
+    if isinstance(field, appform.Integer):
+        setattr(
+            form,
+            field.variablename,
+            IntegerField(
+                field.message,
+                default=field.default,
+                validators=[
+                    InputRequired(),
+                    NumberRange(min=field.minval, max=field.maxval),
+                ],
+                render_kw=render_kw,
+            ),
+        )
+    if isinstance(field, appform.List):
+        choices = []
+        for choice in field.choices:
+            if not isinstance(choice, tuple):
+                choices.append((str(choice), str(choice)))
+            else:
+                choices.append((choice[1], choice[0]))
+        setattr(
+            form,
+            field.variablename,
+            SelectField(
+                field.message,
+                default=field.default,
+                choices=choices,
+                render_kw=render_kw,
+            ),
+        )
+
+    if isinstance(field, (appform.Directory, appform.File)):
+        setattr(
+            form,
+            field.variablename,
+            StringField(field.message, default=field.default, render_kw=render_kw),
+        )
+
+    if isinstance(field, appform.Checkbox):
+        choices = []
+        for choice in field.choices:
+            if not isinstance(choice, tuple):
+                choices.append((str(choice), str(choice)))
+            else:
+                choices.append((choice[1], choice[0]))
+        setattr(
+            form,
+            field.variablename,
+            SelectMultipleField(
+                field.message,
+                default=field.default,
+                choices=choices,
+                render_kw=render_kw,
+            ),
+        )
+
+    if isinstance(field, appform.Confirm):
+        setattr(
+            form,
+            field.variablename,
+            BooleanField(field.message, default=field.default, render_kw=render_kw),
+        )
+
+    if isinstance(field, appform.BooleanList):
+        fieldid = 0
+
+        class FalseForm(FlaskForm):
+            pass
+
+        class TrueForm(FlaskForm):
+            pass
+
+        if field.whenfalse:
+            for wf in field.whenfalse:
+                FalseForm = parse_field(
+                    FalseForm,
+                    wf,
+                    render_kw={"id": f"{field.variablename}_false_{fieldid}"},
+                )
+                fieldid += 1
+        if field.whentrue:
+            for wt in field.whentrue:
+                TrueForm = parse_field(
+                    TrueForm,
+                    wt,
+                    render_kw={"id": f"{field.variablename}_true_{fieldid}"},
+                )
+                fieldid += 1
+        setattr(
+            form,
+            field.variablename,
+            BooleanField(
+                field.message,
+                default=field.default,
+                render_kw={"onchange": "toggle_questions(this);"},
+            ),
+        )
+        setattr(form, f"{field.variablename}_trueform", FormField(TrueForm, label=""))
+        setattr(form, f"{field.variablename}_falseform", FormField(FalseForm, label=""))
+
+    return form
+
+
+def _form_generator(application, templates, appview):
     if "data" in session:
         data = json.loads(session["data"])
     else:
@@ -50,75 +170,10 @@ def _form_generator(application, templates, appform):
         QuestioneryForm.template = SelectField(
             "Select template", choices=templates, default=default_template
         )
-
-    while appform.questions:
-        field = appform.questions.popleft()
-        if field["type"] == "Text":
-            setattr(
-                QuestioneryForm,
-                field["variablename"],
-                StringField(
-                    field["message"],
-                    validators=[InputRequired()],
-                    default=field["default"],
-                ),
-            )
-        if field["type"] == "Integer":
-            setattr(
-                QuestioneryForm,
-                field["variablename"],
-                IntegerField(
-                    field["message"],
-                    default=field["default"],
-                    validators=[
-                        InputRequired(),
-                        NumberRange(min=field["minval"], max=field["maxval"]),
-                    ],
-                ),
-            )
-        if field["type"] == "List":
-            choices = []
-            for choice in field["choices"]:
-                if not isinstance(choice, tuple):
-                    choices.append((str(choice), str(choice)))
-                else:
-                    choices.append((choice[1], choice[0]))
-            setattr(
-                QuestioneryForm,
-                field["variablename"],
-                SelectField(
-                    field["message"], default=field["default"], choices=choices
-                ),
-            )
-
-        if field["type"] in ["Directory", "File"]:
-            setattr(
-                QuestioneryForm,
-                field["variablename"],
-                StringField(field["message"], default=field["default"]),
-            )
-
-        if field["type"] == "Checkbox":
-            choices = []
-            for choice in field["choices"]:
-                if not isinstance(choice, tuple):
-                    choices.append((str(choice), str(choice)))
-                else:
-                    choices.append((choice[1], choice[0]))
-            setattr(
-                QuestioneryForm,
-                field["variablename"],
-                SelectMultipleField(
-                    field["message"], default=field["default"], choices=choices
-                ),
-            )
-
-        if field["type"] == "Confirm":
-            setattr(
-                QuestioneryForm,
-                field["variablename"],
-                BooleanField(field["message"], default=field["default"]),
-            )
+    questions = appview.mainflow(data)
+    while questions:
+        field = questions.pop(0)
+        QuestioneryForm = parse_field(QuestioneryForm, field)
 
     if appform.workflows:
         choices = [(None, "--- Select ---")]
@@ -182,7 +237,7 @@ def app(application, templates):
         pass
     session["data"] = json.dumps(data)
 
-    questionsform = _form_generator(application, templates, importedlib.appform)
+    questionsform = _form_generator(application, templates, importedlib)
 
     if questionsform.validate_on_submit():
         data = json.loads(session["data"])
