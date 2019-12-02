@@ -11,9 +11,10 @@ from jobbergate.lib import config, fullpath_import
 from jobbergate import appform
 
 
-def flatten(li):
+def flatten(deeplist):
+    """Helper function to flatten lists and tuples"""
     out = []
-    for item in li:
+    for item in deeplist:
         if isinstance(item, (list, tuple)):
             out.extend(flatten(item))
         else:
@@ -22,6 +23,7 @@ def flatten(li):
 
 
 def parse_field(field, ignore=None):
+    """Parses the question field and returns a list of inquirer questions"""
     if isinstance(field, appform.Text):
         return inquirer.Text(
             field.variablename,
