@@ -149,7 +149,7 @@ def _app_factory():
                 with open(kvargs["answerfile"]) as jsonfile:
                     answerfile = json.load(jsonfile)
             else:
-                answerfile = None
+                answerfile = {}
             # Check if the app has a controller file
             try:
                 appcontroller = fullpath_import(f"{application}", "controller")
