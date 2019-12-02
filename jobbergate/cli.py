@@ -245,6 +245,9 @@ def _app_factory():
 
         return _wrapper
 
+    if not Path(config["apps"]["path"]).is_dir():
+        return []
+
     apps = [x.name for x in Path(config["apps"]["path"]).iterdir() if x.is_dir()]
     default_options = [
         click.Option(
