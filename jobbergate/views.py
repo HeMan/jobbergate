@@ -299,7 +299,7 @@ def renderworkflow(application, workflow):
     appview.appform.workflows = {}
     questionsform = _form_generator(application, [], appview.appform)
 
-    if questionsform.validate():
+    if questionsform.validate_on_submit():
         # FIXME: Same as in apps function.
         # DRY
         templatedir = f"{config['apps']['path']}/{application}/templates/"
