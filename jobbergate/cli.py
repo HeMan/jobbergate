@@ -273,8 +273,8 @@ def _app_factory():
     readme = {}
     for app in apps:
         try:
-            with open(f"{config['apps']['path']}/{app}/README") as f:
-                readme[app] = f.read()
+            with open(f"{config['apps']['path']}/{app}/README") as readmefile:
+                readme[app] = readmefile.readline().rstrip()
         except FileNotFoundError:
             readme[app] = ""
 
