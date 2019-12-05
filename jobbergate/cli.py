@@ -132,6 +132,18 @@ def ask_questions(fields, answerfile):
     return retval
 
 
+def parse_prefill(arguments):
+    retval = {}
+    for arg in arguments:
+        key, value = arg.split("=")
+        if value.lower() == "true":
+            value = True
+        elif value.lower() == "false":
+            value = False
+        retval.update({key: value})
+    return retval
+
+
 def _app_factory():
     """App factory. Looks in app directory and creates CLI for each of the
     directories"""
@@ -152,6 +164,9 @@ def _app_factory():
                     answerfile = json.load(jsonfile)
             else:
                 answerfile = {}
+
+            # Update data from answerfile with command line arguments
+            answerfile.update(parse_prefill(kvargs["prefill"]))
             # Check if the app has a controller file
             try:
                 appcontroller = fullpath_import(f"{application}", "controller")
@@ -267,6 +282,13 @@ def _app_factory():
             help="Creates a pre-poulated answer file",
             required=False,
             type=click.Path(),
+        ),
+        click.Option(
+            param_decls=("-p", "--prefill"),
+            help="Prefills answers",
+            required=False,
+            multiple=True,
+            type=click.STRING,
         ),
         click.Argument(param_decls=["output"], type=click.File("w")),
     ]
