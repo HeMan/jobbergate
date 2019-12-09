@@ -204,6 +204,36 @@ def _app_factory():
                 savedanswers = answers
 
             data.update(answers)
+            # FIXME: use nextworkflow in data
+            # Needs a loop since it could set at the end of each workflow
+            # Take answerfile in considerations
+
+            if "nextworkflow" in data:
+                while True:
+                    workflow = data.pop("nextworkflow")
+                    # If nextworkflow isn't defined, raise exception
+                    if workflow not in appview.__dict__:
+                        raise NameError(f"Couldn't find workflow {workflow}")
+
+                    # If selected workflow have a pre_-function, run that now
+                    if workflow in prefuncs.keys():
+                        data.update(prefuncs[workflow](data) or {})
+
+                    # "Instantiate" workflow questions
+                    wfquestions = appview.__dict__[workflow]
+                    questions = wfquestions(data)
+                    answers = ask_questions(questions, answerfile)
+                    if saveanswers:
+                        savedanswers.update(answers)
+                    data.update(answers)
+
+                    # If selected workflow have a post_-function, run that now
+                    if workflow in postfuncs.keys():
+                        data.update(postfuncs[workflow](data) or {})
+
+                    if "nextworkflow" not in data:
+                        break
+
             # Check if workflows is defined
             if appview.appform.workflows:
                 if "workflow" in answerfile:
