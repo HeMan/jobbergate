@@ -78,6 +78,11 @@ class BooleanList(QuestionBase):
         self.noignore = lambda a: not a[self.variablename]
 
 
+class Const(QuestionBase):
+    def __init__(self, variablename, default):
+        super().__init__(variablename, None, default)
+
+
 def workflow(func=None, *, name=None):
     """Decorator for workflows. Adds an workflow question and all questions
     added in the decorated question is asked after selecting workflow.

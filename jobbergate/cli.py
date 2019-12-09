@@ -108,6 +108,11 @@ def parse_field(field, ignore=None):
 
         return retval
 
+    if isinstance(field, appform.Const):
+        return inquirer.Text(
+            field.variablename, message="", default=field.default, ignore=True,
+        )
+
 
 def ask_questions(fields, answerfile):
     """Asks the questions from all the fields"""
