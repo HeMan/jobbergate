@@ -283,26 +283,38 @@ def _app_factory():
             required=False,
             type=click.Path(),
         ),
-        click.Option(
-            param_decls=("-p", "--prefill"),
-            help="Prefills answers",
-            required=False,
-            multiple=True,
-            type=click.STRING,
-        ),
         click.Argument(param_decls=["output"], type=click.File("w")),
     ]
-    readme = {}
+    readmefirstline = {}
+    params = {}
     for app in apps:
         try:
             with open(f"{config['apps']['path']}/{app}/README") as readmefile:
-                readme[app] = readmefile.readline().rstrip()
+                readmefirstline[app] = readmefile.readline()
         except FileNotFoundError:
-            readme[app] = ""
+            readmefirstline[app] = ""
+
+        try:
+            with open(f"{config['apps']['path']}/{app}/parameters") as paramsfile:
+                params[app] = paramsfile.read()
+        except FileNotFoundError:
+            params[app] = ""
 
     return [
         click.Command(
-            name=app, help=readme[app], callback=_callback(app), params=default_options
+            name=app,
+            help=readmefirstline[app],
+            callback=_callback(app),
+            params=default_options
+            + [
+                click.Option(
+                    param_decls=("-p", "--prefill"),
+                    help=params[app] or "Prefill answers",
+                    required=False,
+                    multiple=True,
+                    type=click.STRING,
+                )
+            ],
         )
         for app in apps
     ]
