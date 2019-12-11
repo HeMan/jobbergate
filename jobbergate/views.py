@@ -219,17 +219,17 @@ def apps():
     if appform.validate_on_submit():
         application = appform.data["application"]
         templatedir = Path(f"{config['apps']['path']}/{application}/templates/")
-        templates = ",".join([template.name for template in templatedir.glob("*.j2")])
-        return redirect(
-            url_for("main.app", application=application, templates=templates)
+        session["templates"] = json.dumps(
+            [template.name for template in templatedir.glob("*.j2")]
         )
+        return redirect(url_for("main.app", application=application))
 
     return render_template("main/form.html", form=appform)
 
 
-@main_blueprint.route("/app/<application>/<templates>", methods=["GET", "POST"])
-def app(application, templates):
-    templates = [(template, template) for template in templates.split(",")]
+@main_blueprint.route("/app/<application>", methods=["GET", "POST"])
+def app(application):
+    templates = [(template, template) for template in json.loads(session["templates"])]
     importedlib = fullpath_import(application, "views")
 
     data = {}
