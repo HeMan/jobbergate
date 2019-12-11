@@ -34,8 +34,6 @@ main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
 
 def parse_field(form, field, render_kw=None):
-    print(field.variablename, render_kw)
-    print(type(field))
     if isinstance(field, appform.Text):
         setattr(
             form,
