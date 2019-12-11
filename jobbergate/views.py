@@ -146,6 +146,13 @@ def parse_field(form, field, render_kw=None):
         setattr(form, f"{field.variablename}_trueform", FormField(TrueForm, label=""))
         setattr(form, f"{field.variablename}_falseform", FormField(FalseForm, label=""))
 
+    if isinstance(field, appform.Const):
+        setattr(
+            form,
+            field.variablename,
+            HiddenField(field.variablename, default=field.default),
+        )
+
     return form
 
 
