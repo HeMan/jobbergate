@@ -204,13 +204,22 @@ def _app_factory():
                 savedanswers = answers
 
             data.update(answers)
-            # FIXME: use nextworkflow in data
-            # Needs a loop since it could set at the end of each workflow
-            # Take answerfile in considerations
-
-            if "nextworkflow" in data:
+            if "nextworkflow" in data or "mainflow" in answerfile["flows"]:
+                if saveanswers:
+                    savedanswers["flow"] = {}
+                currentworkflow = "mainflow"
                 while True:
-                    workflow = data.pop("nextworkflow")
+                    if "flows" in answerfile:
+                        workflow = answerfile["flows"].get(currentworkflow) or data.pop(
+                            "nextworkflow"
+                        )
+                        if workflow in answerfile["flows"]:
+                            answerfile["nextworkflow"] = answerfile["flows"][workflow]
+                    else:
+                        workflow = data.pop("nextworkflow")
+                    if saveanswers:
+                        savedanswers["flow"].update({currentworkflow: workflow})
+                    currentworkflow = workflow
                     # If nextworkflow isn't defined, raise exception
                     if workflow not in appview.__dict__:
                         raise NameError(f"Couldn't find workflow {workflow}")
