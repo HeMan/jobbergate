@@ -34,8 +34,6 @@ main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
 
 def parse_field(form, field, render_kw=None):
-    print(field.variablename, render_kw)
-    print(type(field))
     if isinstance(field, appform.Text):
         setattr(
             form,
@@ -148,10 +146,17 @@ def parse_field(form, field, render_kw=None):
         setattr(form, f"{field.variablename}_trueform", FormField(TrueForm, label=""))
         setattr(form, f"{field.variablename}_falseform", FormField(FalseForm, label=""))
 
+    if isinstance(field, appform.Const):
+        setattr(
+            form,
+            field.variablename,
+            HiddenField(field.variablename, default=field.default),
+        )
+
     return form
 
 
-def _form_generator(application, templates, appview):
+def _form_generator(application, templates, workflow):
     if "data" in session:
         data = json.loads(session["data"])
     else:
@@ -170,7 +175,7 @@ def _form_generator(application, templates, appview):
         QuestioneryForm.template = SelectField(
             "Select template", choices=templates, default=default_template
         )
-    questions = appview.mainflow(data)
+    questions = workflow(data)
     while questions:
         field = questions.pop(0)
         QuestioneryForm = parse_field(QuestioneryForm, field)
@@ -214,17 +219,17 @@ def apps():
     if appform.validate_on_submit():
         application = appform.data["application"]
         templatedir = Path(f"{config['apps']['path']}/{application}/templates/")
-        templates = ",".join([template.name for template in templatedir.glob("*.j2")])
-        return redirect(
-            url_for("main.app", application=application, templates=templates)
+        session["templates"] = json.dumps(
+            [template.name for template in templatedir.glob("*.j2")]
         )
+        return redirect(url_for("main.app", application=application))
 
     return render_template("main/form.html", form=appform)
 
 
-@main_blueprint.route("/app/<application>/<templates>", methods=["GET", "POST"])
-def app(application, templates):
-    templates = [(template, template) for template in templates.split(",")]
+@main_blueprint.route("/app/<application>", methods=["GET", "POST"])
+def app(application):
+    templates = [(template, template) for template in json.loads(session["templates"])]
     importedlib = fullpath_import(application, "views")
 
     data = {}
@@ -237,18 +242,19 @@ def app(application, templates):
         pass
     session["data"] = json.dumps(data)
 
-    questionsform = _form_generator(application, templates, importedlib)
+    questionsform = _form_generator(application, templates, importedlib.mainflow)
 
     if questionsform.validate_on_submit():
         data = json.loads(session["data"])
         data.update(questionsform.data)
         session["data"] = json.dumps(data)
-        if "workflow" in questionsform:
+        if "workflow" or "nextworkflow" in questionsform:
+            workflow = questionsform.data.get("workflow") or questionsform.data.get(
+                "nextworkflow"
+            )
             return redirect(
                 url_for(
-                    "main.renderworkflow",
-                    application=application,
-                    workflow=questionsform.data["workflow"],
+                    "main.renderworkflow", application=application, workflow=workflow,
                 )
             )
         templatedir = f"{config['apps']['path']}/{application}/templates/"
@@ -277,7 +283,7 @@ def renderworkflow(application, workflow):
 
         prefuncs = appcontroller.workflow.prefuncs
         postfuncs = appcontroller.workflow.postfuncs
-    except FileNotFoundError:
+    except ModuleNotFoundError:
         prefuncs = {}
         postfuncs = {}
 
@@ -290,16 +296,34 @@ def renderworkflow(application, workflow):
         data.update(prefuncs[workflow](data) or {})
 
     appview.appform.questions = deque()
+    if workflow in appview.appform.workflows:
+        wfquestions = appview.appform.workflows[workflow]
+    else:
+        if workflow not in appview.__dict__:
+            raise NameError(f"Couldn't find workflow {workflow}")
+
+        wfquestions = appview.__dict__[workflow]
 
     # "Instantiate" workflow questions
-    wfquestions = appview.appform.workflows[workflow]
     wfquestions(data)
 
     # Ask workflow questions
     appview.appform.workflows = {}
-    questionsform = _form_generator(application, [], appview.appform)
+    questionsform = _form_generator(application, [], wfquestions)
 
     if questionsform.validate_on_submit():
+        if "workflow" or "nextworkflow" in questionsform:
+            workflow = questionsform.data.get("workflow") or questionsform.data.get(
+                "nextworkflow"
+            )
+            if workflow:
+                return redirect(
+                    url_for(
+                        "main.renderworkflow",
+                        application=application,
+                        workflow=workflow,
+                    )
+                )
         # FIXME: Same as in apps function.
         # DRY
         templatedir = f"{config['apps']['path']}/{application}/templates/"

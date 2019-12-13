@@ -108,6 +108,11 @@ def parse_field(field, ignore=None):
 
         return retval
 
+    if isinstance(field, appform.Const):
+        return inquirer.Text(
+            field.variablename, message="", default=field.default, ignore=True,
+        )
+
 
 def ask_questions(fields, answerfile):
     """Asks the questions from all the fields"""
@@ -199,6 +204,45 @@ def _app_factory():
                 savedanswers = answers
 
             data.update(answers)
+            if "nextworkflow" in data or "mainflow" in answerfile["flows"]:
+                if saveanswers:
+                    savedanswers["flow"] = {}
+                currentworkflow = "mainflow"
+                while True:
+                    if "flows" in answerfile:
+                        workflow = answerfile["flows"].get(currentworkflow) or data.pop(
+                            "nextworkflow"
+                        )
+                        if workflow in answerfile["flows"]:
+                            answerfile["nextworkflow"] = answerfile["flows"][workflow]
+                    else:
+                        workflow = data.pop("nextworkflow")
+                    if saveanswers:
+                        savedanswers["flow"].update({currentworkflow: workflow})
+                    currentworkflow = workflow
+                    # If nextworkflow isn't defined, raise exception
+                    if workflow not in appview.__dict__:
+                        raise NameError(f"Couldn't find workflow {workflow}")
+
+                    # If selected workflow have a pre_-function, run that now
+                    if workflow in prefuncs.keys():
+                        data.update(prefuncs[workflow](data) or {})
+
+                    # "Instantiate" workflow questions
+                    wfquestions = appview.__dict__[workflow]
+                    questions = wfquestions(data)
+                    answers = ask_questions(questions, answerfile)
+                    if saveanswers:
+                        savedanswers.update(answers)
+                    data.update(answers)
+
+                    # If selected workflow have a post_-function, run that now
+                    if workflow in postfuncs.keys():
+                        data.update(postfuncs[workflow](data) or {})
+
+                    if "nextworkflow" not in data:
+                        break
+
             # Check if workflows is defined
             if appview.appform.workflows:
                 if "workflow" in answerfile:
