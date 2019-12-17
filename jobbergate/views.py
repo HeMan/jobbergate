@@ -1,4 +1,5 @@
 # views.py
+import sys
 from pathlib import Path
 from collections import deque
 from jinja2 import Environment, FileSystemLoader
@@ -194,7 +195,7 @@ def _form_generator(application, templates, workflow):
 
 @main_blueprint.route("/")
 def home():
-    session.pop("data", None)
+    session.clear()
     return render_template("main/home.html")
 
 
@@ -252,6 +253,8 @@ def app(application):
             workflow = questionsform.data.get("workflow") or questionsform.data.get(
                 "nextworkflow"
             )
+            if "views" in sys.modules:
+                del sys.modules["views"]
             return redirect(
                 url_for(
                     "main.renderworkflow", application=application, workflow=workflow,
@@ -269,6 +272,8 @@ def app(application):
             headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
         )
 
+    if "views" in sys.modules:
+        del sys.modules["views"]
     return render_template(
         "main/form.html", form=questionsform, application=application,
     )

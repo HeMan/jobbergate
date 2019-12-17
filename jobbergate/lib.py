@@ -8,9 +8,8 @@ with open("jobbergate.yaml") as ymlfile:
 
 def fullpath_import(path, lib):
     """Imports a file from absolute path."""
-    old_syspath = sys.path
     sys.path.append(f"{config['apps']['path']}/{path}/")
     module = importlib.import_module(lib)
-    sys.path = old_syspath
+    sys.path.remove(f"{config['apps']['path']}/{path}/")
 
     return module
