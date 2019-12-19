@@ -131,8 +131,10 @@ def ask_questions(fields, answerfile):
             retval.update({question.name: answerfile[question.name]})
         else:
             questionstoask.append(question)
-
-    retval.update(inquirer.prompt(questionstoask))
+    try:
+        retval.update(inquirer.prompt(questionstoask))
+    except TypeError:
+        exit(0)
 
     return retval
 
@@ -256,7 +258,11 @@ def _app_factory():
                         )
                     ]
 
-                    wfdata = inquirer.prompt(workflows)
+                    try:
+                        wfdata = inquirer.prompt(workflows)
+                    except TypeError:
+                        exit(0)
+
                     workflow = wfdata["workflow"]
 
                 if saveanswers:
