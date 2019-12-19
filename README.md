@@ -1,7 +1,7 @@
 # Jobbergate
-Jobbergate is an questionaire application that populates Jinja2 templates with given answers.
+Jobbergate is an questionnaire application that populates Jinja2 templates with given answers.
 
-In it's simplest form you only need a `views.py` that defines `mainflow` and a template file (called `tempates/job_template.j2`) which gets populate with your answers.
+In its simplest form you only need a `views.py` that defines `mainflow` and a template file (called `templates/job_template.j2`) which gets populated with your answers.
 To support advanced workflows you could define multiple levels of questions, change to other templates, run functions before and after subworkflows, have follow up questions to boolean questions and so on.
 
 ## Workflow
@@ -18,7 +18,7 @@ views.py
 from jobbergate import appform
 
 def mainflow(data):
-    return [appform.Text("jobname", "What is the jobname?", defaut="simulation")]
+    return [appform.Text("jobname", "What is the jobname?", default="simulation")]
 ```
 
 job_template.j2
@@ -48,7 +48,7 @@ def debug(data):
 
 @appform.workflow
 def gpu(data):
-    reuturn [appform.Integer("gpus", "Number of gpus?", default=1, maxval=10)]
+    return [appform.Integer("gpus", "Number of gpus?", default=1, maxval=10)]
 ```
 
 job_template.j2
@@ -73,7 +73,7 @@ NUMBER_OF_GPUS=0
 
 
 ## Questions
-All questions has an variable name and a message (execpt Const), and could have a defaut value.
+All questions has an variable name and a message (except Const), and could have a default value.
 ### appform.Text(variablename, message, default=None)
 Asks for a text value.
 
@@ -96,7 +96,7 @@ Gives the user a list to choose multiple entries from.
 Asks a question with an boolean answer (true/false).
 
 ### appform.BooleanList(variablename, message, default=None, whentrue=None, whenfalse=None)
-Gives the use a boolean question, and depending on answer it shows `whentrue` or `whenfalse` questions. `whentrue` and `whenfalse` is lists with questions. Could contain multiple levels of BooleanList's.
+Gives the use a boolean question, and depending on answer it shows `whentrue` or `whenfalse` questions. `whentrue` and `whenfalse` are lists with questions. Could contain multiple levels of BooleanLists.
 
 ### appform.Const(variablename, default)
 Sets the variable to the `default` value. Doesn't show anything.
