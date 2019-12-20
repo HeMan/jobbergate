@@ -28,7 +28,7 @@ from wtforms.fields import (
 )
 from wtforms.validators import InputRequired, NumberRange
 
-from jobbergate.lib import config, fullpath_import
+from jobbergate.lib import jobbergateconfig, fullpath_import
 from jobbergate import appform
 
 main_blueprint = Blueprint("main", __name__, template_folder="templates")
@@ -205,12 +205,12 @@ def about():
 
 
 @main_blueprint.route("/apps/", methods=["GET", "POST"])
-def apps():
+def applications():
     class AppForm(FlaskForm):
         application = SelectField("Select application")
         submit = SubmitField()
 
-    appdir = Path(config["apps"]["path"])
+    appdir = Path(jobbergateconfig["apps"]["path"])
 
     appform = AppForm()
     appform.application.choices = [
@@ -219,24 +219,26 @@ def apps():
 
     if appform.validate_on_submit():
         application = appform.data["application"]
-        templatedir = Path(f"{config['apps']['path']}/{application}/templates/")
+        templatedir = Path(
+            f"{jobbergateconfig['apps']['path']}/{application}/templates/"
+        )
         session["templates"] = json.dumps(
             [template.name for template in templatedir.glob("*.j2")]
         )
-        return redirect(url_for("main.app", application=application))
+        return redirect(url_for("main.application", application=application))
 
     return render_template("main/form.html", form=appform)
 
 
 @main_blueprint.route("/app/<application>", methods=["GET", "POST"])
-def app(application):
+def application(application):
     templates = [(template, template) for template in json.loads(session["templates"])]
     importedlib = fullpath_import(application, "views")
 
     data = {}
     try:
         with open(
-            f"{config['apps']['path']}/{application}/config.yaml", "r"
+            f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
         ) as ymlfile:
             data.update(yaml.safe_load(ymlfile))
     except FileNotFoundError:
@@ -260,7 +262,7 @@ def app(application):
                     "main.renderworkflow", application=application, workflow=workflow,
                 )
             )
-        templatedir = f"{config['apps']['path']}/{application}/templates/"
+        templatedir = f"{jobbergateconfig['apps']['path']}/{application}/templates/"
         template = data.get("template", None) or data.get(
             "default_template", "job_template.j2"
         )
@@ -331,7 +333,7 @@ def renderworkflow(application, workflow):
                 )
         # FIXME: Same as in apps function.
         # DRY
-        templatedir = f"{config['apps']['path']}/{application}/templates/"
+        templatedir = f"{jobbergateconfig['apps']['path']}/{application}/templates/"
         template = data.get("template", None) or data.get(
             "default_template", "job_template.j2"
         )
