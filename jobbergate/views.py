@@ -1,5 +1,6 @@
 # views.py
 import sys
+from copy import deepcopy
 from pathlib import Path
 from collections import deque
 from jinja2 import Environment, FileSystemLoader
@@ -236,6 +237,7 @@ def application(application):
     importedlib = fullpath_import(application, "views")
 
     data = {}
+    data["jobbergateconfig"] = deepcopy(jobbergateconfig)
     try:
         with open(
             f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"

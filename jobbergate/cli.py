@@ -1,4 +1,5 @@
 """Creates dynamic CLI's for all apps"""
+from copy import deepcopy
 from pathlib import Path
 import json
 import click
@@ -165,6 +166,7 @@ def _app_factory():
             appview = fullpath_import(f"{application}", "views")
 
             data = {}
+            data["jobbergateconfig"] = deepcopy(jobbergateconfig)
             saveanswers = kvargs["saveanswers"]
             if kvargs["answerfile"]:
                 with open(kvargs["answerfile"]) as jsonfile:
