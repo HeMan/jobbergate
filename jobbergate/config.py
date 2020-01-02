@@ -14,7 +14,6 @@ class BaseConfig(object):
     SECRET_KEY = os.getenv("SECRET_KEY", "my_precious")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
-    JOBBERGATECONFIGDIR = "./"
 
 
 class DevelopmentConfig(BaseConfig):
