@@ -1,9 +1,16 @@
 import importlib
+import os
 import sys
 import yaml
 
-with open("jobbergate.yaml") as ymlfile:
-    jobbergateconfig = yaml.safe_load(ymlfile)
+jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
+
+try:
+    with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
+        jobbergateconfig = yaml.safe_load(ymlfile)
+except FileNotFoundError as err:
+    print(err)
+    sys.exit(1)
 
 
 def fullpath_import(path, lib):
