@@ -1,0 +1,4 @@
+graft jobbergate/static
+graft jobbergate/templates
+global-exclude *.pyc
+recursive-exclude tests *
