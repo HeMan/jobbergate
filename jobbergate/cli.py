@@ -206,7 +206,9 @@ def _app_factory():
                 savedanswers = answers
 
             data.update(answers)
-            if "nextworkflow" in data or "mainflow" in answerfile["flows"]:
+            if "nextworkflow" in data or (
+                "flows" in answerfile and "mainflow" in answerfile["flows"]
+            ):
                 if saveanswers:
                     savedanswers["flow"] = {}
                 currentworkflow = "mainflow"
