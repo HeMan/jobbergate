@@ -1,4 +1,5 @@
 """Creates dynamic CLI's for all apps"""
+from copy import deepcopy
 from pathlib import Path
 import json
 import click
@@ -7,7 +8,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
 
-from jobbergate.lib import config, fullpath_import
+from jobbergate.lib import jobbergateconfig, fullpath_import
 from jobbergate import appform
 
 
@@ -165,6 +166,7 @@ def _app_factory():
             appview = fullpath_import(f"{application}", "views")
 
             data = {}
+            data["jobbergateconfig"] = deepcopy(jobbergateconfig)
             saveanswers = kvargs["saveanswers"]
             if kvargs["answerfile"]:
                 with open(kvargs["answerfile"]) as jsonfile:
@@ -188,7 +190,7 @@ def _app_factory():
 
             try:
                 with open(
-                    f"{config['apps']['path']}/{application}/config.yaml", "r"
+                    f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
                 ) as ymlfile:
                     data.update(yaml.safe_load(ymlfile))
             except FileNotFoundError:
@@ -293,7 +295,9 @@ def _app_factory():
                 templatedir = str(Path(kvargs["template"]).parent)
                 template = Path(kvargs["template"]).name
             else:
-                templatedir = f"{config['apps']['path']}/{application}/templates/"
+                templatedir = (
+                    f"{jobbergateconfig['apps']['path']}/{application}/templates/"
+                )
                 template = data.get("template", None) or data.get(
                     "default_template", "job_template.j2"
                 )
@@ -312,10 +316,12 @@ def _app_factory():
 
         return _wrapper
 
-    if not Path(config["apps"]["path"]).is_dir():
+    if not Path(jobbergateconfig["apps"]["path"]).is_dir():
         return []
 
-    apps = [x.name for x in Path(config["apps"]["path"]).iterdir() if x.is_dir()]
+    apps = [
+        x.name for x in Path(jobbergateconfig["apps"]["path"]).iterdir() if x.is_dir()
+    ]
     default_options = [
         click.Option(
             param_decls=("-t", "--template"),
@@ -341,13 +347,15 @@ def _app_factory():
     params = {}
     for app in apps:
         try:
-            with open(f"{config['apps']['path']}/{app}/README") as readmefile:
+            with open(f"{jobbergateconfig['apps']['path']}/{app}/README") as readmefile:
                 readmefirstline[app] = readmefile.readline()
         except FileNotFoundError:
             readmefirstline[app] = ""
 
         try:
-            with open(f"{config['apps']['path']}/{app}/parameters") as paramsfile:
+            with open(
+                f"{jobbergateconfig['apps']['path']}/{app}/parameters"
+            ) as paramsfile:
                 params[app] = paramsfile.read()
         except FileNotFoundError:
             params[app] = ""
