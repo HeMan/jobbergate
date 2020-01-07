@@ -6,6 +6,7 @@ setup(
     author="Jimmy Hedman",
     author_email="jimmy.hedman@cygni.se",
     description="Questionnaire application that populates Jinja2 templates with given answers.",
+    scripts=["wrapper.sh"],
     url="https://github.com/HeMan/jobbergate",
     packages=find_packages(),
     include_package_data=True,
