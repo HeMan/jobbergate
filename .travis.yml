@@ -4,3 +4,12 @@ python:
   - "3.7"
 install: pip install tox-travis
 script: tox
+
+deploy:
+  provider: pypi
+  user: __token__
+  password:
+    secure: MuQVtwCORIDZlEdmMfF5EtSUmjFrBHgb7cqWGiSX5gVJlOZdjVjqmAaGFlXKI8FcSPH02vLySWqQoCZRhGcBMWY/iaEF4iP6RipcpaZvFJ4EJYT0I7lDKFbrV0Vf1eZDp2jkxpSjuoSzBN0bNGzNZFWQj2sXS8UZyQnejGTdsRQSG+RmmxwxqaODTTnFSeVZc/5bgOd/Xb5g5f4t775EhXTcScgMSYn6lCcuXqmKTR6YrSakR1Fzt0+9HCqR6eqeDTawiWmqkxs7mfR6LM9aHO4uoNW9uipYddm+FL2RN1yfLTy6OlMn+HIhTkWUDKo02lBhFNMbwwOIr/Mk8KKjzuR29Rr5GsuQai6h5AQSp17zhmXo+3wEVo9a0SuXce2yfGrYP65KPedrFt911QNHavr/NAah0C1y4ohhJBuL+NGtDwi9eSToZQPw2sasBaogi0gmMxQq4wnxymj7kMMU2C1c9rekR4lv3TEa6uF0Hkg61rX9hMZjXrzO3Rm3Fd8w/5pEd2WRVKk6GvzwPrsjoGrq9qgiiYojHu1UobfSADGS1wG0xbFXa9seCaZBhMC6YEkkt16tpccT5k80pfMo9FV5sUKEIwC/maSgAvl6Lxf0XT0aP+yY/MJF7K2hMtjOEcgU+zBNmMyL7J7+J5A8qyeVKSUd4B52jEmPLhac0d0=
+  on:
+    tags: true
+    repo: HeMan/jobbergate
