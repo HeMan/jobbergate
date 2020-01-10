@@ -1,4 +1,9 @@
-"""Abstraction layer for questions"""
+"""
+Appform
+=======
+
+Abstraction layer for questions. Each classe represents different question
+types, and QuestionBase"""
 
 from collections import deque
 from functools import partial, wraps
