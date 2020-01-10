@@ -1,11 +1,19 @@
 from setuptools import find_packages, setup
 
+from os import path
+
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, "README.rst")) as f:
+    long_description = f.read()
+
 setup(
     name="jobbergate",
     version="1.0.0",
     author="Jimmy Hedman",
     author_email="jimmy.hedman@cygni.se",
     description="Questionnaire application that populates Jinja2 templates with given answers.",
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
     scripts=["wrapper.sh"],
     url="https://github.com/HeMan/jobbergate",
     packages=find_packages(),

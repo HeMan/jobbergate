@@ -130,7 +130,8 @@ class Confirm(QuestionBase):
 
 
 class BooleanList(QuestionBase):
-    """Gives the use a boolean question, and depending on answer it shows `whentrue` or `whenfalse` questions. `whentrue` and `whenfalse` are lists with questions. Could contain multiple levels of BooleanLists.
+    """Gives the use a boolean question, and depending on answer it shows `whentrue` or `whenfalse` questions.
+    `whentrue` and `whenfalse` are lists with questions. Could contain multiple levels of BooleanLists.
 
 
     :param variablename: The variable name to set
