@@ -2,7 +2,6 @@
 
 
 import os
-import jobbergate.cli
 
 from flask import Flask, render_template
 from flask_login import LoginManager
@@ -23,6 +22,7 @@ migrate = Migrate()
 
 
 def create_app(script_info=None):
+    import jobbergate.cli
 
     # instantiate the app
     app = Flask(__name__, template_folder="../apps", static_folder="static")
