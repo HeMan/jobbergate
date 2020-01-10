@@ -308,7 +308,7 @@ def _app_factory():
 
             if saveanswers:
                 with open(kvargs["saveanswers"], "w") as jsonfile:
-                    json.dump(savedanswers, jsonfile)
+                    json.dump(savedanswers, jsonfile, indent=4)
 
             jinjaenv = Environment(loader=FileSystemLoader(templatedir))
             jinjatemplate = jinjaenv.get_template(template)
