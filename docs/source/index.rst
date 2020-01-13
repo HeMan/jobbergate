@@ -76,9 +76,7 @@ job_template.j2:
    :maxdepth: 2
    :caption: Contents:
 
-   views
-   templates
-   appform
+   API
 
 
 
