@@ -77,6 +77,7 @@ job_template.j2:
    :caption: Contents:
 
    API
+   internal
 
 
 
