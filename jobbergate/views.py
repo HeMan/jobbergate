@@ -1,4 +1,9 @@
-# views.py
+"""
+views
+=====
+
+The web part of jobbergate.
+"""
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -36,6 +41,14 @@ main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
 
 def parse_field(form, field, render_kw=None):
+    """Parses the question field and populates a FlaskForm with the fields.
+
+    :param FlaskForm form: The form to populate
+    :param jobbergate.appform.QuestionBase field: The question to parse
+    :param render_kw: extra attributes for the field
+    :returns: Form with all the fields
+    :rtype: FlaskForm
+    """
     if isinstance(field, appform.Text):
         setattr(
             form,
@@ -158,7 +171,15 @@ def parse_field(form, field, render_kw=None):
     return form
 
 
-def _form_generator(application, templates, workflow):
+def form_generator(application_name, templates, workflow):
+    """Generates form from workflow function
+
+    :param string application_name: Name of the application
+    :param list[string] templates: List of availabe templates
+    :param workflow: workflow function
+    :returns: A populated QuestionaryForm
+    :rtype: FlaskForm
+    """
     if "data" in session:
         data = json.loads(session["data"])
     else:
@@ -188,7 +209,7 @@ def _form_generator(application, templates, workflow):
         QuestioneryForm.workflow = SelectField("Select workflow", choices=choices)
         appform.workflows = {}
 
-    QuestioneryForm.application = HiddenField("application", default=application)
+    QuestioneryForm.application = HiddenField("application", default=application_name)
     QuestioneryForm.submit = SubmitField()
 
     return QuestioneryForm()
@@ -196,6 +217,9 @@ def _form_generator(application, templates, workflow):
 
 @main_blueprint.route("/")
 def home():
+    """route for /
+
+    Clears out session data and redners home.html template"""
     session.clear()
     return render_template("main/home.html")
 
@@ -207,6 +231,10 @@ def about():
 
 @main_blueprint.route("/apps/", methods=["GET", "POST"])
 def applications():
+    """route for /apps/
+
+    Lets users select from available applications"""
+
     class AppForm(FlaskForm):
         application = SelectField("Select application")
         submit = SubmitField()
@@ -232,22 +260,28 @@ def applications():
 
 
 @main_blueprint.route("/app/<application>", methods=["GET", "POST"])
-def application(application):
+def application(application_name):
+    """route for /app/<application>
+
+    :param application_name: Name of application
+
+    Renders base questions for <application> and lets users answer them."""
+
     templates = [(template, template) for template in json.loads(session["templates"])]
-    importedlib = fullpath_import(application, "views")
+    importedlib = fullpath_import(application_name, "views")
 
     data = {}
     data["jobbergateconfig"] = deepcopy(jobbergateconfig)
     try:
         with open(
-            f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
+            f"{jobbergateconfig['apps']['path']}/{application_name}/config.yaml", "r"
         ) as ymlfile:
             data.update(yaml.safe_load(ymlfile))
     except FileNotFoundError:
         pass
     session["data"] = json.dumps(data)
 
-    questionsform = _form_generator(application, templates, importedlib.mainflow)
+    questionsform = form_generator(application_name, templates, importedlib.mainflow)
 
     if questionsform.validate_on_submit():
         data = json.loads(session["data"])
@@ -261,10 +295,14 @@ def application(application):
                 del sys.modules["views"]
             return redirect(
                 url_for(
-                    "main.renderworkflow", application=application, workflow=workflow,
+                    "main.renderworkflow",
+                    application=application_name,
+                    workflow=workflow,
                 )
             )
-        templatedir = f"{jobbergateconfig['apps']['path']}/{application}/templates/"
+        templatedir = (
+            f"{jobbergateconfig['apps']['path']}/{application_name}/templates/"
+        )
         template = data.get("template", None) or data.get(
             "default_template", "job_template.j2"
         )
@@ -279,16 +317,23 @@ def application(application):
     if "views" in sys.modules:
         del sys.modules["views"]
     return render_template(
-        "main/form.html", form=questionsform, application=application,
+        "main/form.html", form=questionsform, application=application_name,
     )
 
 
 @main_blueprint.route("/workflow/<application>/<workflow>", methods=["GET", "POST"])
-def renderworkflow(application, workflow):
-    appview = fullpath_import(f"{application}", "views")
+def renderworkflow(application_name, workflow):
+    """route for /workflow/<application>/<workflow>
+
+    :param application: application name
+    :param workflow: workflow name
+
+    Renders <workflow> for <application> and lets user answer questions."""
+
+    appview = fullpath_import(f"{application_name}", "views")
     data = json.loads(session["data"])
     try:
-        appcontroller = fullpath_import(f"{application}", "controller")
+        appcontroller = fullpath_import(f"{application_name}", "controller")
 
         prefuncs = appcontroller.workflow.prefuncs
         postfuncs = appcontroller.workflow.postfuncs
@@ -318,7 +363,7 @@ def renderworkflow(application, workflow):
 
     # Ask workflow questions
     appview.appform.workflows = {}
-    questionsform = _form_generator(application, [], wfquestions)
+    questionsform = form_generator(application_name, [], wfquestions)
 
     if questionsform.validate_on_submit():
         if "workflow" or "nextworkflow" in questionsform:
@@ -329,13 +374,15 @@ def renderworkflow(application, workflow):
                 return redirect(
                     url_for(
                         "main.renderworkflow",
-                        application=application,
+                        application=application_name,
                         workflow=workflow,
                     )
                 )
         # FIXME: Same as in apps function.
         # DRY
-        templatedir = f"{jobbergateconfig['apps']['path']}/{application}/templates/"
+        templatedir = (
+            f"{jobbergateconfig['apps']['path']}/{application_name}/templates/"
+        )
         template = data.get("template", None) or data.get(
             "default_template", "job_template.j2"
         )
@@ -351,5 +398,5 @@ def renderworkflow(application, workflow):
     if workflow in postfuncs.keys():
         data.update(postfuncs[workflow](data) or {})
     return render_template(
-        "main/form.html", form=questionsform, application=application,
+        "main/form.html", form=questionsform, application=application_name,
     )

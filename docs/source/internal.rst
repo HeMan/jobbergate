@@ -7,3 +7,4 @@ internal
 
    cli
    lib
+   views-internal
