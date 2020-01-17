@@ -241,31 +241,31 @@ def applications():
 
     appdir = Path(jobbergateconfig["apps"]["path"])
 
-    appform = AppForm()
-    appform.application.choices = [
+    appwebform = AppForm()
+    appwebform.application.choices = [
         (x.name, x.stem) for x in appdir.iterdir() if x.is_dir()
     ]
 
-    if appform.validate_on_submit():
-        application = appform.data["application"]
+    if appwebform.validate_on_submit():
+        application_name = appwebform.data["application"]
         templatedir = Path(
-            f"{jobbergateconfig['apps']['path']}/{application}/templates/"
+            f"{jobbergateconfig['apps']['path']}/{application_name}/templates/"
         )
         session["templates"] = json.dumps(
             [template.name for template in templatedir.glob("*.j2")]
         )
-        return redirect(url_for("main.application", application=application))
+        return redirect(url_for("main.application", application_name=application_name))
 
-    return render_template("main/form.html", form=appform)
+    return render_template("main/form.html", form=appwebform)
 
 
-@main_blueprint.route("/app/<application>", methods=["GET", "POST"])
+@main_blueprint.route("/app/<application_name>", methods=["GET", "POST"])
 def application(application_name):
-    """route for /app/<application>
+    """route for /app/<application_name>
 
     :param application_name: Name of application
 
-    Renders base questions for <application> and lets users answer them."""
+    Renders base questions for <application_name> and lets users answer them."""
 
     templates = [(template, template) for template in json.loads(session["templates"])]
     importedlib = fullpath_import(application_name, "views")
@@ -296,7 +296,7 @@ def application(application_name):
             return redirect(
                 url_for(
                     "main.renderworkflow",
-                    application=application_name,
+                    application_name=application_name,
                     workflow=workflow,
                 )
             )
@@ -317,18 +317,20 @@ def application(application_name):
     if "views" in sys.modules:
         del sys.modules["views"]
     return render_template(
-        "main/form.html", form=questionsform, application=application_name,
+        "main/form.html", form=questionsform, application_name=application_name,
     )
 
 
-@main_blueprint.route("/workflow/<application>/<workflow>", methods=["GET", "POST"])
+@main_blueprint.route(
+    "/workflow/<application_name>/<workflow>", methods=["GET", "POST"]
+)
 def renderworkflow(application_name, workflow):
-    """route for /workflow/<application>/<workflow>
+    """route for /workflow/<application_name>/<workflow>
 
-    :param application: application name
+    :param application_name: application name
     :param workflow: workflow name
 
-    Renders <workflow> for <application> and lets user answer questions."""
+    Renders <workflow> for <application_name> and lets user answer questions."""
 
     appview = fullpath_import(f"{application_name}", "views")
     data = json.loads(session["data"])
@@ -374,7 +376,7 @@ def renderworkflow(application_name, workflow):
                 return redirect(
                     url_for(
                         "main.renderworkflow",
-                        application=application_name,
+                        application_name=application_name,
                         workflow=workflow,
                     )
                 )
@@ -398,5 +400,5 @@ def renderworkflow(application_name, workflow):
     if workflow in postfuncs.keys():
         data.update(postfuncs[workflow](data) or {})
     return render_template(
-        "main/form.html", form=questionsform, application=application_name,
+        "main/form.html", form=questionsform, application_name=application_name,
     )
