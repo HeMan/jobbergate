@@ -1,4 +1,8 @@
-"""Creates dynamic CLI's for all apps"""
+"""
+cli
+===
+
+Creates dynamic CLI's for all apps"""
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -13,7 +17,12 @@ from jobbergate import appform
 
 
 def flatten(deeplist):
-    """Helper function to flatten lists and tuples"""
+    """Helper function to flatten lists and tuples.
+
+    :param list deeplist: list of varying dept
+    :returns: flattened list
+    :rtype: list
+    """
     out = []
     for item in deeplist:
         if isinstance(item, (list, tuple)):
@@ -24,7 +33,13 @@ def flatten(deeplist):
 
 
 def parse_field(field, ignore=None):
-    """Parses the question field and returns a list of inquirer questions"""
+    """Parses the question field and returns a list of inquirer questions.
+
+    :param jobbergate.appform.QuestionBase field: The question to parse
+    :param ignore: function to decide if the question should be ignored/hidden
+    :returns: inquirer question
+    :rtype: inquirer.Question
+    """
     if isinstance(field, appform.Text):
         return inquirer.Text(
             field.variablename,
@@ -116,7 +131,13 @@ def parse_field(field, ignore=None):
 
 
 def ask_questions(fields, answerfile):
-    """Asks the questions from all the fields"""
+    """Asks the questions from all the fields.
+
+    :param list[jobbergate.appform.QuestionBase] fields: List with questions
+    :param dict answerfile: dict with prepoulated answers
+    :returns: all answers
+    :rtype: dict
+    """
     questions = []
     questionstoask = []
     retval = {}
@@ -141,6 +162,12 @@ def ask_questions(fields, answerfile):
 
 
 def parse_prefill(arguments):
+    """Parses ``-p/--prefill`` command line arguments.
+
+    :param list[string] arguments: all arguments given to -p/--prefill
+    :returns: dict with all command line answers
+    :rtype: dict
+    """
     retval = {}
     for arg in arguments:
         key, value = arg.split("=")
@@ -152,9 +179,15 @@ def parse_prefill(arguments):
     return retval
 
 
-def _app_factory():
-    """App factory. Looks in app directory and creates CLI for each of the
-    directories"""
+def app_factory():
+    """
+    This is the workhorse of cli module.
+
+    Click needs to have the code as a callback so we need to create the
+    _callback function, which in turn returns a wrapper for each application.
+    The app factory loops throug all the applications in the configed
+    directory, and creates callbacks for each of them. This is the real
+    workhorse in cli."""
 
     def _callback(application):
         """Callback for the cli"""
@@ -380,4 +413,7 @@ def _app_factory():
     ]
 
 
-cmds = _app_factory()
+try:
+    cmds = app_factory()
+except KeyError:
+    pass
