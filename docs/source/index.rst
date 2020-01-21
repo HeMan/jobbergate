@@ -24,7 +24,7 @@ job_template.j2:
 .. code-block:: jinja
 
   #!/bin/bash
-  #SBATCH -j {{ job.jobname }}
+  #SBATCH -j {{ data.jobname }}
   sleep 30
 
 Workflow with implicit workflows
@@ -57,16 +57,16 @@ job_template.j2:
 .. code-block:: jinja
 
   #!/bin/bash
-  #SBATCH -j {{ job.jobname }}
+  #SBATCH -j {{ data.jobname }}
 
 
-  {% if job.gpus %}
-  NUMBER_OF_GPUS={{ job.gpus }}
+  {% if data.gpus %}
+  NUMBER_OF_GPUS={{ data.gpus }}
   {% else %}
   NUMBER_OF_GPUS=0
   {% endif %}
 
-  {% if job.debug %}
+  {% if data.debug %}
   /application/debug_prepare
   {% endif %}
 

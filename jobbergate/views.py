@@ -309,7 +309,7 @@ def application(application_name):
         jinjaenv = Environment(loader=FileSystemLoader(templatedir))
         jinjatemplate = jinjaenv.get_template(template)
         return Response(
-            jinjatemplate.render(job=data),
+            jinjatemplate.render(data=data),
             mimetype="text/x-shellscript",
             headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
         )
@@ -391,7 +391,7 @@ def renderworkflow(application_name, workflow):
         jinjaenv = Environment(loader=FileSystemLoader(templatedir))
         jinjatemplate = jinjaenv.get_template(template)
         return Response(
-            jinjatemplate.render(job=data),
+            jinjatemplate.render(data=data),
             mimetype="text/x-shellscript",
             headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
         )

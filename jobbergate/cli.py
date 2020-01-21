@@ -345,7 +345,7 @@ def app_factory():
 
             jinjaenv = Environment(loader=FileSystemLoader(templatedir))
             jinjatemplate = jinjaenv.get_template(template)
-            return outputfile.write(jinjatemplate.render(job=data))
+            return outputfile.write(jinjatemplate.render(data=data))
 
         return _wrapper
 
