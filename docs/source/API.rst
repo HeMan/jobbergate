@@ -5,7 +5,8 @@ API
    :maxdepth: 2
    :caption: Contents:
 
+   appform
+   controller
+   templates
    views
    workflow
-   templates
-   appform
