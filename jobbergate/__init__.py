@@ -10,6 +10,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_ldap3_login import LDAP3LoginManager
 
 
 # instantiate the extensions
@@ -19,6 +20,9 @@ toolbar = DebugToolbarExtension()
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 migrate = Migrate()
+ldap_manager = LDAP3LoginManager()
+
+users = {}
 
 
 def create_app(script_info=None):
@@ -30,9 +34,14 @@ def create_app(script_info=None):
     # set config
     app_settings = os.getenv("APP_SETTINGS", "jobbergate.config.ProductionConfig")
     app.config.from_object(app_settings)
+    from jobbergate.lib import jobbergateconfig
+
+    app.config.update(jobbergateconfig)
 
     # set up extensions
     login_manager.init_app(app)
+    if "LDAP_HOST" in app.config:
+        ldap_manager.init_app(app)
     bcrypt.init_app(app)
     toolbar.init_app(app)
     bootstrap.init_app(app)
@@ -47,12 +56,20 @@ def create_app(script_info=None):
     # flask login
     from jobbergate.models import User
 
-    login_manager.login_view = "user.login"
+    login_manager.login_view = "main.login"
     login_manager.login_message_category = "danger"
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.filter(User.id == int(user_id)).first()
+        if user_id in users:
+            return users[user_id]
+        return None
+
+    @ldap_manager.save_user
+    def save_user(dn, username, data, memberships):
+        user = User(dn, username, data)
+        users[dn] = user
+        return user
 
     # error handlers
     @app.errorhandler(401)
