@@ -1,6 +1,9 @@
 <footer>
   <nav class="navbar fixed-bottom navbar-light bg-light">
     <div class="container">
+        {% if current_user.is_authenticated %}
+        <div>Logged in as {{ current_user.username }}</div>
+        {% endif %}
       <small>
         <span>©
           <a href="http://mherman.org">Michael Herman</a>

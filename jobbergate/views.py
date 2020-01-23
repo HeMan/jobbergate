@@ -23,7 +23,7 @@ from flask import (
     url_for,
     request,
 )
-from flask_login import login_user, login_required
+from flask_login import login_user, logout_user, login_required
 from flask_ldap3_login.forms import LDAPLoginForm
 from flask_wtf import FlaskForm
 from wtforms.fields import (
@@ -434,3 +434,9 @@ def login():
         next_url = request.args.get("next")
         return redirect(next_url or url_for("main.home"))
     return render_template("main/form.html", form=loginform)
+
+
+@main_blueprint.route("/logout/")
+def logout():
+    logout_user()
+    return redirect(url_for("main.home"))
