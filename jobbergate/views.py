@@ -297,12 +297,29 @@ def application(application_name):
         pass
     session["data"] = json.dumps(data)
 
+    try:
+        appcontroller = fullpath_import(f"{application_name}", "controller")
+
+        prefuncs = appcontroller.workflow.prefuncs
+        postfuncs = appcontroller.workflow.postfuncs
+    except ModuleNotFoundError:
+        prefuncs = {}
+        postfuncs = {}
+
+    # If the is a pre_-function in the controller, run that before all
+    # questions
+    if "" in prefuncs.keys():
+        data.update(prefuncs[""](data) or {})
+
     questionsform = form_generator(application_name, templates, importedlib.mainflow)
 
     if questionsform.validate_on_submit():
         data.update(json.loads(session["data"]))
         data.update(questionsform.data)
         session["data"] = json.dumps(data)
+        if "post_mainflow" in postfuncs:
+            data.update(postfuncs["post_mainflow"](data) or {})
+
         if "workflow" or "nextworkflow" in questionsform:
             workflow = questionsform.data.get("workflow") or questionsform.data.get(
                 "nextworkflow"
@@ -359,11 +376,6 @@ def renderworkflow(application_name, workflow):
     except ModuleNotFoundError:
         prefuncs = {}
         postfuncs = {}
-
-    # If the is a pre_-function in the controller, run that before all
-    # questions
-    if "" in prefuncs.keys():
-        data.update(prefuncs[""](data) or {})
 
     if workflow in prefuncs.keys():
         data.update(prefuncs[workflow](data) or {})
