@@ -284,7 +284,7 @@ def application(application_name):
     questionsform = form_generator(application_name, templates, importedlib.mainflow)
 
     if questionsform.validate_on_submit():
-        data = json.loads(session["data"])
+        data.update(json.loads(session["data"]))
         data.update(questionsform.data)
         session["data"] = json.dumps(data)
         if "workflow" or "nextworkflow" in questionsform:
@@ -368,9 +368,17 @@ def renderworkflow(application_name, workflow):
     questionsform = form_generator(application_name, [], wfquestions)
 
     if questionsform.validate_on_submit():
-        if "workflow" or "nextworkflow" in questionsform:
-            workflow = questionsform.data.get("workflow") or questionsform.data.get(
-                "nextworkflow"
+        data.update(json.loads(session["data"]))
+        data.update(questionsform.data)
+        session["data"] = json.dumps(data)
+        # If selected workflow have a post_-function, run that now
+        if workflow in postfuncs.keys():
+            data.update(postfuncs[workflow](data) or {})
+        if ("workflow" or "nextworkflow" in questionsform) or ("nextworkflow" in data):
+            workflow = (
+                questionsform.data.get("workflow")
+                or questionsform.data.get("nextworkflow")
+                or data["nextworkflow"]
             )
             if workflow:
                 return redirect(
@@ -396,9 +404,6 @@ def renderworkflow(application_name, workflow):
             headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
         )
 
-    # If selected workflow have a post_-function, run that now
-    if workflow in postfuncs.keys():
-        data.update(postfuncs[workflow](data) or {})
     return render_template(
         "main/form.html", form=questionsform, application_name=application_name,
     )
