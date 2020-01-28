@@ -15,12 +15,16 @@ import yaml
 from flask import (
     Blueprint,
     Response,
+    current_app,
     json,
     redirect,
     render_template,
     session,
     url_for,
+    request,
 )
+from flask_login import login_user, logout_user, login_required
+from flask_ldap3_login.forms import LDAPLoginForm
 from flask_wtf import FlaskForm
 from wtforms.fields import (
     BooleanField,
@@ -36,6 +40,9 @@ from wtforms.validators import InputRequired, NumberRange
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
 from jobbergate import appform
+from jobbergate.models import User
+
+from jobbergate import users
 
 main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
@@ -220,7 +227,14 @@ def home():
     """route for /
 
     Clears out session data and redners home.html template"""
-    session.clear()
+    if "data" in session:
+        del session["data"]
+    if "templates" in session:
+        del session["templates"]
+    if "LDAP_HOST" not in current_app.config:
+        user = User("temp", "temp", "temp")
+        login_user(user)
+        users["temp"] = user
     return render_template("main/home.html")
 
 
@@ -230,6 +244,7 @@ def about():
 
 
 @main_blueprint.route("/apps/", methods=["GET", "POST"])
+@login_required
 def applications():
     """route for /apps/
 
@@ -260,6 +275,7 @@ def applications():
 
 
 @main_blueprint.route("/app/<application_name>", methods=["GET", "POST"])
+@login_required
 def application(application_name):
     """route for /app/<application_name>
 
@@ -324,6 +340,7 @@ def application(application_name):
 @main_blueprint.route(
     "/workflow/<application_name>/<workflow>", methods=["GET", "POST"]
 )
+@login_required
 def renderworkflow(application_name, workflow):
     """route for /workflow/<application_name>/<workflow>
 
@@ -407,3 +424,19 @@ def renderworkflow(application_name, workflow):
     return render_template(
         "main/form.html", form=questionsform, application_name=application_name,
     )
+
+
+@main_blueprint.route("/login/", methods=["GET", "POST"])
+def login():
+    loginform = LDAPLoginForm()
+    if loginform.validate_on_submit():
+        login_user(loginform.user)
+        next_url = request.args.get("next")
+        return redirect(next_url or url_for("main.home"))
+    return render_template("main/form.html", form=loginform)
+
+
+@main_blueprint.route("/logout/")
+def logout():
+    logout_user()
+    return redirect(url_for("main.home"))
