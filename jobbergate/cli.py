@@ -134,7 +134,7 @@ def ask_questions(fields, answerfile):
     """Asks the questions from all the fields.
 
     :param list[jobbergate.appform.QuestionBase] fields: List with questions
-    :param dict answerfile: dict with prepoulated answers
+    :param dict answerfile: dict with prepopulated answers
     :returns: all answers
     :rtype: dict
     """
@@ -241,6 +241,10 @@ def app_factory():
                 savedanswers = answers
 
             data.update(answers)
+
+            if "mainflow" in postfuncs.keys():
+                data.update(postfuncs["mainflow"](data) or {})
+
             if "nextworkflow" in data or (
                 "flows" in answerfile and "mainflow" in answerfile["flows"]
             ):
@@ -299,7 +303,8 @@ def app_factory():
                         wfdata = inquirer.prompt(workflows)
                     except TypeError:
                         exit(0)
-
+                    if "mainflow" in postfuncs.keys():
+                        data.update(postfuncs["mainflow"](data) or {})
                     workflow = wfdata["workflow"]
 
                 if saveanswers:

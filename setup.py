@@ -30,6 +30,7 @@ setup(
         "Flask-WTF==0.14.2",
         "PyYAML==5.1.2",
         "inquirer==2.6.3",
+        "flask-ldap3-login==0.9.16",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
