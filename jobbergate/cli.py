@@ -134,7 +134,7 @@ def ask_questions(fields, answerfile):
     """Asks the questions from all the fields.
 
     :param list[jobbergate.appform.QuestionBase] fields: List with questions
-    :param dict answerfile: dict with prepoulated answers
+    :param dict answerfile: dict with prepopulated answers
     :returns: all answers
     :rtype: dict
     """
