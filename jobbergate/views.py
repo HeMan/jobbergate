@@ -316,8 +316,8 @@ def application(application_name):
         data.update(json.loads(session["data"]))
         data.update(questionsform.data)
         session["data"] = json.dumps(data)
-        if "post_mainflow" in postfuncs:
-            data.update(postfuncs["post_mainflow"](data) or {})
+        if "mainflow" in postfuncs:
+            data.update(postfuncs["mainflow"](data) or {})
 
         if "workflow" or "nextworkflow" in questionsform:
             workflow = questionsform.data.get("workflow") or questionsform.data.get(
