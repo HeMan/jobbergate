@@ -295,7 +295,6 @@ def application(application_name):
             data.update(yaml.safe_load(ymlfile))
     except FileNotFoundError:
         pass
-    session["data"] = json.dumps(data)
 
     try:
         appcontroller = fullpath_import(f"{application_name}", "controller")
@@ -305,11 +304,11 @@ def application(application_name):
     except ModuleNotFoundError:
         prefuncs = {}
         postfuncs = {}
-
-    # If the is a pre_-function in the controller, run that before all
-    # questions
-    if "" in prefuncs.keys():
-        data.update(prefuncs[""](data) or {})
+    if request.method == "GET":
+        # If the is a pre_-function in the controller, run that before all
+        # questions
+        if "" in prefuncs.keys():
+            data.update(prefuncs[""](data) or {})
 
     questionsform = form_generator(application_name, templates, importedlib.mainflow)
 
@@ -347,6 +346,7 @@ def application(application_name):
             headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
         )
 
+    session["data"] = json.dumps(data)
     if "views" in sys.modules:
         del sys.modules["views"]
     return render_template(
