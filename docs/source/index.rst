@@ -78,6 +78,7 @@ job_template.j2:
 
    API
    internal
+   configuration
 
 
 
