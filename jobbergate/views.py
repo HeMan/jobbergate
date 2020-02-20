@@ -226,7 +226,7 @@ def form_generator(application_name, templates, workflow):
 def home():
     """route for /
 
-    Clears out session data and redners home.html template"""
+    Clears out session data and renders home.html template"""
     if "data" in session:
         del session["data"]
     if "templates" in session:

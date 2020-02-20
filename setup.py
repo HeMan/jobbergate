@@ -27,7 +27,7 @@ setup(
         "Flask-Login==0.4.1",
         "Flask-Migrate==2.5.2",
         "Flask-SQLAlchemy==2.4.1",
-        "Flask-WTF==0.14.2",
+        "Flask-WTF==0.14.3",
         "PyYAML==5.1.2",
         "inquirer==2.6.3",
         "flask-ldap3-login==0.9.16",

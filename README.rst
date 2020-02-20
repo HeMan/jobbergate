@@ -1,7 +1,7 @@
 Jobbergate
 ==========
 
-Jobbergate is an questionnaire application that populates Jinja2 templates with given answers.
+Jobbergate is a questionnaire application that populates Jinja2 templates with given answers.
 
 In its simplest form you only need a `views.py` that defines `mainflow` and a 
 template file (called `templates/job_template.j2`) which gets populated with your answers.
@@ -16,17 +16,17 @@ Configure jobbergate.yaml to point to your directory where you have all
 applications. Set ``JOBBERGATE_PATH`` environment to point to where your
 jobbergate.yaml resides.
 
-Jobbergate is a Flask application but could both be run as a web applications
-and as cli application.
+Jobbergate is a Flask application but could be run both as a web application
+and as a cli application.
 
-To run as web applcation, just do::
+To run as web application, just do::
 
     flask run
 
-To run as cli application, you can find out which applications it has in it's
-configuration director with::
+To run as cli application, you can find out which applications it has in its
+configuration directory with::
 
-    flask help
+    flask --help
 
 If you have an application called `simple` you run it with::
 
