@@ -13,17 +13,17 @@ postfuncs = {}
 def logic(func=None, *, name=None, prepost=None):
     """A decorator that registers functions as either pre or post to workflows.
 
-    :param name: (optional) Descriptional name that is used when choosing workflow
+    :param name: (optional) Descriptive name that is used when choosing workflow
 
 
-    Hooking a pre-function to eigin implicit by function nam:
+    Hooking a pre-function to eigen implicit by function name:
 
     .. code-block:: python
 
         # Hooking pre function to `eigen` implicit by function name
         @logic
         def pre_eigen(data):
-            print("Pre function to `eigein` questions")
+            print("Pre function to `eigen` questions")
 
 
     Explicit hooking post function to `eigen` workflow:
@@ -34,7 +34,7 @@ def logic(func=None, *, name=None, prepost=None):
         def myfunction(data):
             print("Post function to `eigen` questions")
 
-    Pre and post that is run befor respective after all questions:
+    Pre and post that are run before and after all questions, respectively:
 
     .. code-block:: python
 

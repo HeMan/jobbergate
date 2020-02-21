@@ -340,7 +340,7 @@ def app_factory():
                     "default_template", "job_template.j2"
                 )
 
-            # If there is a global post_-funtion, run that now
+            # If there is a global post_-function, run that now
             if "" in postfuncs.keys():
                 data.update(postfuncs[""](data) or {})
 
