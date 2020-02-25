@@ -152,7 +152,7 @@ def ask_questions(fields, answerfile, use_defaults=False):
     for question in flatten(questions):
         if question.name in answerfile:
             retval.update({question.name: answerfile[question.name]})
-        elif use_defaults and question.default != None:
+        elif use_defaults and question.default is not None:
             retval.update({question.name: question.default})
             print(f"Default used: {question.name}={question.default}")
         else:
