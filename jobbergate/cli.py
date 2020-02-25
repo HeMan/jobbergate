@@ -130,11 +130,12 @@ def parse_field(field, ignore=None):
         )
 
 
-def ask_questions(fields, answerfile):
+def ask_questions(fields, answerfile, use_defaults=False):
     """Asks the questions from all the fields.
 
     :param list[jobbergate.appform.QuestionBase] fields: List with questions
     :param dict answerfile: dict with prepopulated answers
+    :param bool use_defaults: option to use default value instead of asking, when possible
     :returns: all answers
     :rtype: dict
     """
@@ -151,6 +152,9 @@ def ask_questions(fields, answerfile):
     for question in flatten(questions):
         if question.name in answerfile:
             retval.update({question.name: answerfile[question.name]})
+        elif use_defaults and question.default is not None:
+            retval.update({question.name: question.default})
+            print(f"Default used: {question.name}={question.default}")
         else:
             questionstoask.append(question)
     try:
@@ -220,6 +224,7 @@ def app_factory():
                 postfuncs = {}
 
             outputfile = kvargs["output"]
+            use_defaults = kvargs["fast"]
 
             try:
                 with open(
@@ -236,7 +241,7 @@ def app_factory():
 
             # Ask the questions
             questions = appview.mainflow(data)
-            answers = ask_questions(questions, answerfile)
+            answers = ask_questions(questions, answerfile, use_defaults)
             if saveanswers:
                 savedanswers = answers
 
@@ -274,7 +279,7 @@ def app_factory():
                     # "Instantiate" workflow questions
                     wfquestions = appview.__dict__[workflow]
                     questions = wfquestions(data)
-                    answers = ask_questions(questions, answerfile)
+                    answers = ask_questions(questions, answerfile, use_defaults)
                     if saveanswers:
                         savedanswers.update(answers)
                     data.update(answers)
@@ -319,7 +324,7 @@ def app_factory():
                 questions = wfquestions(data)
 
                 # Ask workflow questions
-                answers = ask_questions(questions, answerfile)
+                answers = ask_questions(questions, answerfile, use_defaults)
                 if saveanswers:
                     savedanswers.update(answers)
                 data.update(answers)
@@ -378,6 +383,12 @@ def app_factory():
             help="Creates a pre-poulated answer file",
             required=False,
             type=click.Path(),
+        ),
+        click.Option(
+            param_decls=("-f", "--fast"),
+            help="Fast-forward by using defaults instead of asking when possible.",
+            required=False,
+            is_flag=True,
         ),
         click.Argument(param_decls=["output"], type=click.File("w")),
     ]
