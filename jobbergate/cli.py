@@ -178,12 +178,11 @@ def parse_prefill(arguments):
         else:
             # Save as number if possible
             try:
-                value = int(value)
+                original = value
+                value = float(original)
+                value = int(original)
             except ValueError:
-                try:
-                    value = float(value)
-                except ValueError:
-                    pass
+                pass
         retval.update({key: value})
     return retval
 
