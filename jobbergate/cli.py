@@ -179,6 +179,14 @@ def parse_prefill(arguments):
             value = True
         elif value.lower() == "false":
             value = False
+        else:
+            # Save as number if possible
+            try:
+                original = value
+                value = float(original)
+                value = int(original)
+            except ValueError:
+                pass
         retval.update({key: value})
     return retval
 
@@ -380,7 +388,7 @@ def app_factory():
         ),
         click.Option(
             param_decls=("-s", "--saveanswers"),
-            help="Creates a pre-poulated answer file",
+            help="Creates a pre-populated answer file",
             required=False,
             type=click.Path(),
         ),
