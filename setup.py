@@ -8,7 +8,7 @@ with open(path.join(this_directory, "README.rst")) as f:
 
 setup(
     name="jobbergate",
-    version="1.2.0",
+    version="1.3.0-dev0",
     author="Jimmy Hedman",
     author_email="jimmy.hedman@cygni.se",
     description="Questionnaire application that populates Jinja2 templates with given answers.",
