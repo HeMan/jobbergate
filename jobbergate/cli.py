@@ -428,19 +428,18 @@ def app_factory():
             help=readmefirstline[app],
             callback=_callback(app),
             params=default_options
-                   + [
-                       click.Option(
-                           param_decls=("-p", "--prefill"),
-                           help=params[app] or "Prefill answers",
-                           required=False,
-                           multiple=True,
-                           type=click.STRING,
-                       )
-                   ],
+            + [
+                click.Option(
+                    param_decls=("-p", "--prefill"),
+                    help=params[app] or "Prefill answers",
+                    required=False,
+                    multiple=True,
+                    type=click.STRING,
+                )
+            ],
         )
         for app in apps
     ]
-
 
 try:
     cmds = app_factory()
