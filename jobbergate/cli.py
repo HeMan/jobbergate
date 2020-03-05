@@ -370,6 +370,7 @@ def app_factory():
             if (data.keys().__contains__("cmd_command")):
                 subprocess.run(data['cmd_command'].split(), stdout=True, check=True)
             return file
+
         return _wrapper
 
     if not Path(jobbergateconfig["apps"]["path"]).is_dir():
