@@ -416,7 +416,7 @@ def app_factory():
 
         try:
             with open(
-                    f"{jobbergateconfig['apps']['path']}/{app}/parameters"
+                f"{jobbergateconfig['apps']['path']}/{app}/parameters"
             ) as paramsfile:
                 params[app] = paramsfile.read()
         except FileNotFoundError:
