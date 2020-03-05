@@ -3,18 +3,18 @@ cli
 ===
 
 Creates dynamic CLI's for all apps"""
+import json
 import subprocess
 from copy import deepcopy
 from pathlib import Path
-import json
+
 import click
 import inquirer
 import yaml
-from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
-
-from jobbergate.lib import jobbergateconfig, fullpath_import
+from jinja2 import Environment, FileSystemLoader
 from jobbergate import appform
+from jobbergate.lib import jobbergateconfig, fullpath_import
 
 
 def flatten(deeplist):
@@ -355,7 +355,6 @@ def app_factory():
                 )
 
             # If there is a global post_-function, run that now
-
             if "" in postfuncs.keys():
                 data.update(postfuncs[""](data) or {})
 
