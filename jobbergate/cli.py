@@ -441,6 +441,7 @@ def app_factory():
         for app in apps
     ]
 
+
 try:
     cmds = app_factory()
 except KeyError:
