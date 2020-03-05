@@ -3,6 +3,7 @@ cli
 ===
 
 Creates dynamic CLI's for all apps"""
+import subprocess
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -236,7 +237,7 @@ def app_factory():
 
             try:
                 with open(
-                    f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
+                        f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
                 ) as ymlfile:
                     data.update(yaml.safe_load(ymlfile))
             except FileNotFoundError:
@@ -259,7 +260,7 @@ def app_factory():
                 data.update(postfuncs["mainflow"](data) or {})
 
             if "nextworkflow" in data or (
-                "flows" in answerfile and "mainflow" in answerfile["flows"]
+                    "flows" in answerfile and "mainflow" in answerfile["flows"]
             ):
                 if saveanswers:
                     savedanswers["flow"] = {}
@@ -354,6 +355,7 @@ def app_factory():
                 )
 
             # If there is a global post_-function, run that now
+
             if "" in postfuncs.keys():
                 data.update(postfuncs[""](data) or {})
 
@@ -363,8 +365,11 @@ def app_factory():
 
             jinjaenv = Environment(loader=FileSystemLoader(templatedir))
             jinjatemplate = jinjaenv.get_template(template)
-            return outputfile.write(jinjatemplate.render(data=data))
-
+            file = outputfile.write(jinjatemplate.render(data=data))
+            outputfile.close()
+            if (data.keys().__contains__("cmd_command")):
+                subprocess.run(data['cmd_command'].split(), stdout=True, check=True)
+            return file
         return _wrapper
 
     if not Path(jobbergateconfig["apps"]["path"]).is_dir():
@@ -411,7 +416,7 @@ def app_factory():
 
         try:
             with open(
-                f"{jobbergateconfig['apps']['path']}/{app}/parameters"
+                    f"{jobbergateconfig['apps']['path']}/{app}/parameters"
             ) as paramsfile:
                 params[app] = paramsfile.read()
         except FileNotFoundError:
@@ -423,15 +428,15 @@ def app_factory():
             help=readmefirstline[app],
             callback=_callback(app),
             params=default_options
-            + [
-                click.Option(
-                    param_decls=("-p", "--prefill"),
-                    help=params[app] or "Prefill answers",
-                    required=False,
-                    multiple=True,
-                    type=click.STRING,
-                )
-            ],
+                   + [
+                       click.Option(
+                           param_decls=("-p", "--prefill"),
+                           help=params[app] or "Prefill answers",
+                           required=False,
+                           multiple=True,
+                           type=click.STRING,
+                       )
+                   ],
         )
         for app in apps
     ]
