@@ -9,7 +9,6 @@ import json
 import click
 import inquirer
 import yaml
-import subprocess
 from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
 
@@ -364,11 +363,7 @@ def app_factory():
 
             jinjaenv = Environment(loader=FileSystemLoader(templatedir))
             jinjatemplate = jinjaenv.get_template(template)
-            file = outputfile.write(jinjatemplate.render(data=data))
-            outputfile.close()
-            if data.keys().__contains__("cmd_command"):
-                subprocess.run(data['cmd_command'].split(), stdout=True, check=True)
-            return file
+            return outputfile.write(jinjatemplate.render(data=data))
 
         return _wrapper
 
