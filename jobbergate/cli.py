@@ -3,18 +3,18 @@ cli
 ===
 
 Creates dynamic CLI's for all apps"""
-import json
-import subprocess
 from copy import deepcopy
 from pathlib import Path
-
+import json
 import click
 import inquirer
 import yaml
-from flask.cli import with_appcontext
+import subprocess
 from jinja2 import Environment, FileSystemLoader
-from jobbergate import appform
+from flask.cli import with_appcontext
+
 from jobbergate.lib import jobbergateconfig, fullpath_import
+from jobbergate import appform
 
 
 def flatten(deeplist):
@@ -237,7 +237,7 @@ def app_factory():
 
             try:
                 with open(
-                        f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
+                    f"{jobbergateconfig['apps']['path']}/{application}/config.yaml", "r"
                 ) as ymlfile:
                     data.update(yaml.safe_load(ymlfile))
             except FileNotFoundError:
@@ -260,7 +260,7 @@ def app_factory():
                 data.update(postfuncs["mainflow"](data) or {})
 
             if "nextworkflow" in data or (
-                    "flows" in answerfile and "mainflow" in answerfile["flows"]
+                "flows" in answerfile and "mainflow" in answerfile["flows"]
             ):
                 if saveanswers:
                     savedanswers["flow"] = {}
