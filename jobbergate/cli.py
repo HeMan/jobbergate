@@ -3,6 +3,7 @@ cli
 ===
 
 Creates dynamic CLI's for all apps"""
+import subprocess
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -363,7 +364,11 @@ def app_factory():
 
             jinjaenv = Environment(loader=FileSystemLoader(templatedir))
             jinjatemplate = jinjaenv.get_template(template)
-            return outputfile.write(jinjatemplate.render(data=data))
+            file = outputfile.write(jinjatemplate.render(data=data))
+            outputfile.close()
+            if data.keys().__contains__("cmd_command"):
+                subprocess.run(data['cmd_command'].split(), stdout=True, check=True)
+            return file
 
         return _wrapper
 
