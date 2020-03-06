@@ -1,6 +1,14 @@
 Jobbergate
 ==========
 
+.. image:: https://img.shields.io/pypi/v/jobbergate.svg
+    :target: https://pypi.python.org/pypi/jobbergate/
+.. image:: https://travis-ci.com/HeMan/jobbergate.svg?branch=master
+    :target: https://travis-ci.com/HeMan/jobbergate
+.. image:: https://readthedocs.org/projects/jobbergate/badge/?version=stable
+    :target: https://jobbergate.readthedocs.io/en/stable/?badge=stable
+    :alt: Documentation Status
+    
 Jobbergate is a questionnaire application that populates Jinja2 templates with given answers.
 
 In its simplest form you only need a `views.py` that defines `mainflow` and a 
