@@ -42,3 +42,17 @@ If you have an application called `simple` you run it with::
 
 This will populate the simple application template with the answers you give in
 the following interactive session, and create ``outputfile.sh``.
+
+If you want the output file to be run in bash automatically, you may explicitly give the command in your
+implemented application. For example, if you define a function in your application's ``controller.py`` such as::
+
+    @workflow.logic
+    def post_generic(data):
+        retval = {"cmd_command":f"cat {data['filename']}"}
+        return retval
+
+the application will run::
+
+    cat outputfile.sh
+
+which shows the content of the output file.
