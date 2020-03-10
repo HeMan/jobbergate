@@ -23,7 +23,7 @@ copyright = "2020, Jimmy Hedman"
 author = "Jimmy Hedman"
 
 # The full version, including alpha/beta/rc tags
-release = "1.4.0-dev0"
+release = "1.4.0"
 
 
 # -- General configuration ---------------------------------------------------
