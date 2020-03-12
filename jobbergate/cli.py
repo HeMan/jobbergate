@@ -152,7 +152,7 @@ def ask_questions(fields, answerfile, use_defaults=False):
     # Check if questions has already been answered
     for question in flatten(questions):
         if question.name in answerfile:
-            retval.update({question.name: answerfile[question.name]})
+            pass
         elif use_defaults and question.default is not None:
             retval.update({question.name: question.default})
             print(f"Default used: {question.name}={question.default}")
@@ -222,6 +222,7 @@ def app_factory():
 
             # Update data from answerfile with command line arguments
             answerfile.update(parse_prefill(kvargs["prefill"]))
+            data.update(answerfile)
             # Check if the app has a controller file
             try:
                 appcontroller = fullpath_import(f"{application}", "controller")
