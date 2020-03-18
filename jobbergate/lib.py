@@ -11,9 +11,9 @@ import os
 import sys
 import yaml
 
-jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
+jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
 
-if jobbergatepath is None:
+if jobbergatepath is "./":
     print("Undefined JOBBERGATE_PATH")
     jobbergateconfig = {}
 elif os.path.isabs(jobbergatepath):
