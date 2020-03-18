@@ -15,6 +15,7 @@ import yaml
 def quit_app():
     return
 
+
 jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 
 if jobbergatepath is None:
