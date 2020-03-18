@@ -16,9 +16,7 @@ jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 if jobbergatepath is None:
     print("Undefined JOBBERGATE_PATH")
     jobbergateconfig = {}
-    exit(0)
-
-if os.path.isabs(jobbergatepath):
+elif os.path.isabs(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
             jobbergateconfig = yaml.safe_load(ymlfile)
