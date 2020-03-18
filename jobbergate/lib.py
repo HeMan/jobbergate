@@ -11,9 +11,9 @@ import os
 import sys
 import yaml
 
-jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
+jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 
-if jobbergatepath == "./":
+if jobbergatepath is None:
     sys.exit(0)
 elif os.path.isabs(jobbergatepath):
     try:
