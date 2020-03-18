@@ -23,6 +23,9 @@ if os.path.isabs(jobbergatepath):
             sys.exit(1)
         else:
             jobbergateconfig = {}
+elif jobbergatepath is None:
+    print("Undefined JOBBERGATE_PATH")
+    sys.exit(1)
 else:
     try:
         app = importlib.import_module(jobbergatepath)
