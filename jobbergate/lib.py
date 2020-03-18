@@ -14,8 +14,11 @@ import yaml
 jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
 
 if jobbergatepath == "./":
-    print("Undefined JOBBERGATE_PATH")
-    jobbergateconfig = {}
+    try:
+        jobbergatepath
+    except NameError as err:
+        print(err)
+        sys.exit(1)
 elif os.path.isabs(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
