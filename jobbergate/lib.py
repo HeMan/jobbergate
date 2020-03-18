@@ -14,6 +14,7 @@ import yaml
 jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 
 if jobbergatepath is None:
+    jobbergateconfig = {}
     sys.exit(0)
 elif os.path.isabs(jobbergatepath):
     try:
