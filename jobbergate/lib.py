@@ -15,7 +15,7 @@ jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 
 if jobbergatepath is None:
     jobbergateconfig = {}
-    raise SystemExit
+    return
 elif os.path.isabs(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
