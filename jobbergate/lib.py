@@ -30,6 +30,7 @@ else:
         jobbergateconfig = {"apps": {"path": path}}
     except ModuleNotFoundError as err:
         print(err)
+        jobbergateconfig = {}
         sys.exit(1)
 
 
