@@ -13,16 +13,24 @@ import yaml
 
 jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
 
-try:
-    with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
-        jobbergateconfig = yaml.safe_load(ymlfile)
-except FileNotFoundError as err:
-    if __name__ == "__main__":
+if os.path.isabs(jobbergatepath):
+    try:
+        with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
+            jobbergateconfig = yaml.safe_load(ymlfile)
+    except FileNotFoundError as err:
+        if __name__ == "__main__":
+            print(err)
+            sys.exit(1)
+        else:
+            jobbergateconfig = {}
+else:
+    try:
+        app = importlib.import_module(jobbergatepath)
+        path = os.path.join(os.path.dirname(app.__file__), "apps")
+        jobbergateconfig = {"apps":{"path":path}}
+    except ModuleNotFoundError as err:
         print(err)
         sys.exit(1)
-    else:
-        jobbergateconfig = {}
-
 
 def fullpath_import(path, lib):
     """Imports a file from absolute path.
