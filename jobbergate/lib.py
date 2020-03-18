@@ -13,7 +13,7 @@ import yaml
 
 jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
 
-if jobbergatepath is "./":
+if jobbergatepath == "./":
     print("Undefined JOBBERGATE_PATH")
     jobbergateconfig = {}
 elif os.path.isabs(jobbergatepath):
