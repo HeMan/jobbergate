@@ -13,12 +13,6 @@ import yaml
 
 jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
 
-try:
-    jobbergatepath
-except NameError:
-    print("Undefined JOBBERGATE_PATH")
-    sys.exit(1)  # JOBBERGATE_PATH does not exist at all
-
 if os.path.isabs(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
@@ -31,7 +25,7 @@ if os.path.isabs(jobbergatepath):
             jobbergateconfig = {}
 else:
     try:
-        app = importlib.import_module(jobbergatepath)
+        app = importlib.import_module(jobbergatepath, package=None)
         path = os.path.join(os.path.dirname(app.__file__), "apps")
         jobbergateconfig = {"apps": {"path": path}}
     except ModuleNotFoundError as err:
