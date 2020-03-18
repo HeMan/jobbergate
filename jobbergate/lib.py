@@ -16,7 +16,7 @@ jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 if jobbergatepath is None:
     print("Undefined JOBBERGATE_PATH")
     jobbergateconfig = {}
-    sys.exit(0)
+    sys.exit()
 
 if os.path.isabs(jobbergatepath):
     try:
