@@ -18,6 +18,7 @@ if jobbergatepath == "./":
         jobbergatepath
     except NameError as err:
         print(err)
+        jobbergateconfig = {}
         sys.exit(1)
 elif os.path.isabs(jobbergatepath):
     try:
