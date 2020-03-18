@@ -13,6 +13,10 @@ import yaml
 
 jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
 
+if jobbergatepath is None:
+    print("Undefined JOBBERGATE_PATH")
+    sys.exit(1)
+
 if os.path.isabs(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
