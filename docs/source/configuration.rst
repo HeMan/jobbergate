@@ -59,6 +59,11 @@ pointing to the directory containing all the applications.
 ``jobbergate.yaml`` is also passed in the data structure flowing through the
 application as ``data["jobbergateconfig"]``.
 
+Instead of using ``jobbergate.yaml``, ``JOBBERGATE_PATH`` can also be defined as
+a module name in an implemented application, for example, in its ``__init__.py`` file,
+declare such as  ``os.environ["JOBBERGATE_PATH"] = "myapp"``. After module myapp having
+been installed, Jobbergate can read in ``myapp`` as ``JOBBERGATE_PATH``.
+
 Application specific
 --------------------
 You could have an application specific configuration file called
