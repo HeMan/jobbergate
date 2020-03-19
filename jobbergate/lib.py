@@ -36,6 +36,7 @@ else:
 
 def fullpath_import(path, lib):
     """Imports a file from absolute path.
+
     :param path: full path to lib
     :param lib: lib to import
     """
