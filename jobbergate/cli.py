@@ -12,6 +12,7 @@ import inquirer
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
+import os
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
 from jobbergate import appform
@@ -368,7 +369,7 @@ def app_factory():
             file = outputfile.write(jinjatemplate.render(data=data))
             outputfile.flush()
             if "cmd_command" in data.keys():
-                subprocess.run(data["cmd_command"].split(), stdout=True, check=True)
+                os.system(data['cmd_command'])
             return file
 
         return _wrapper
