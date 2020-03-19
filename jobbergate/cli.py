@@ -3,7 +3,6 @@ cli
 ===
 
 Creates dynamic CLI's for all apps"""
-import subprocess
 from copy import deepcopy
 from pathlib import Path
 import json
