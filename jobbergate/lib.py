@@ -11,17 +11,9 @@ import os
 import sys
 import yaml
 
+jobbergatepath = os.getenv("JOBBERGATE_PATH", "jobberapplications")
 
-def quit_app():
-    return
-
-
-jobbergatepath = os.getenv("JOBBERGATE_PATH", None)
-
-if jobbergatepath is None:
-    jobbergateconfig = {}
-    quit_app()
-elif os.path.isabs(jobbergatepath):
+if os.path.isabs(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
             jobbergateconfig = yaml.safe_load(ymlfile)
