@@ -11,9 +11,9 @@ import os
 import sys
 import yaml
 
-jobbergatepath = os.getenv("JOBBERGATE_PATH", "jobberapplications")
+jobbergatepath = os.getenv("JOBBERGATE_PATH", "./")
 
-if os.path.isabs(jobbergatepath):
+if os.path.isdir(jobbergatepath):
     try:
         with open(f"{jobbergatepath}/jobbergate.yaml") as ymlfile:
             jobbergateconfig = yaml.safe_load(ymlfile)
