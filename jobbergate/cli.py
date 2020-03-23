@@ -368,7 +368,7 @@ def app_factory():
             file = outputfile.write(jinjatemplate.render(data=data))
             outputfile.flush()
             if "cmd_command" in data.keys():
-                subprocess.run(data["cmd_command"].split(), stdout=True, check=True)
+                subprocess.run(data["cmd_command"], shell=True)
             return file
 
         return _wrapper
