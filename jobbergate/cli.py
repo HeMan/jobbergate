@@ -3,6 +3,7 @@ cli
 ===
 
 Creates dynamic CLI's for all apps"""
+import subprocess
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -11,7 +12,6 @@ import inquirer
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
-import os
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
 from jobbergate import appform
@@ -368,7 +368,7 @@ def app_factory():
             file = outputfile.write(jinjatemplate.render(data=data))
             outputfile.flush()
             if "cmd_command" in data.keys():
-                os.system(data["cmd_command"])
+                subprocess.run(data["cmd_command"], shell=True)
             return file
 
         return _wrapper
