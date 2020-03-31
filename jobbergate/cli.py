@@ -367,7 +367,7 @@ def app_factory():
             jinjatemplate = jinjaenv.get_template(template)
             file = outputfile.write(jinjatemplate.render(data=data))
             outputfile.flush()
-            if "cmd_command" in data.keys():
+            if "cmd_command" in data.keys() and not kvargs["no_cmd"]:
                 subprocess.run(data["cmd_command"], shell=True)
             return file
 
@@ -401,6 +401,12 @@ def app_factory():
         click.Option(
             param_decls=("-f", "--fast"),
             help="Fast-forward by using defaults instead of asking when possible.",
+            required=False,
+            is_flag=True,
+        ),
+        click.Option(
+            param_decls=["--no-cmd"],
+            help="Disables performing the instructions in the application's 'cmd-command', if any",
             required=False,
             is_flag=True,
         ),
