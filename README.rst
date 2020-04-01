@@ -56,3 +56,6 @@ the application will run::
     cat outputfile.sh
 
 which shows the content of the output file.
+This feature can be suppressed by using the '--no-cmd' flag::
+
+    flask simple outputfile.sh --no-cmd
