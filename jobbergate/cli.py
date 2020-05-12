@@ -195,7 +195,7 @@ def app_factory():
                     workflow = answerfile["workflow"]
                 else:
                     workflows = [
-                        inquirer.List(
+                        jobInquirer.List(
                             "workflow",
                             message="What workflow should be used",
                             choices=appview.appform.workflows.keys(),
@@ -203,7 +203,7 @@ def app_factory():
                     ]
 
                     try:
-                        wfdata = inquirer.prompt(workflows)
+                        wfdata = jobInquirer.prompt(workflows)
                     except TypeError:
                         exit(0)
                     if "mainflow" in postfuncs.keys():

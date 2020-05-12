@@ -5,7 +5,17 @@ as the inquirer package, adapted for the jobbergate. Includes classes for differ
 """
 
 import inquirer
-
+from flask_wtf import FlaskForm
+from wtforms.fields import (
+    BooleanField,
+    HiddenField,
+    IntegerField,
+    SelectField,
+    SelectMultipleField,
+    StringField,
+    FormField,
+)
+from wtforms.validators import InputRequired, NumberRange
 
 class QuestionBase:
     """Baseclass for questions.
@@ -125,6 +135,7 @@ class Integer(QuestionBase):
             ),
         )
         return form
+
 
 class List(QuestionBase):
     """Gives the user a list to choose one from.

@@ -27,16 +27,10 @@ from flask_login import login_user, logout_user, login_required
 from flask_ldap3_login.forms import LDAPLoginForm
 from flask_wtf import FlaskForm
 from wtforms.fields import (
-    BooleanField,
     HiddenField,
-    IntegerField,
     SelectField,
-    SelectMultipleField,
-    StringField,
     SubmitField,
-    FormField,
 )
-from wtforms.validators import InputRequired, NumberRange
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
 from jobbergate import appform, jobInquirer
@@ -45,8 +39,6 @@ from jobbergate.models import User
 from jobbergate import users
 
 main_blueprint = Blueprint("main", __name__, template_folder="templates")
-
-
 
 
 def form_generator(application_name, templates, workflow):
