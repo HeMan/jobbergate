@@ -17,6 +17,7 @@ from wtforms.fields import (
 )
 from wtforms.validators import InputRequired, NumberRange
 
+
 class QuestionBase:
     """Baseclass for questions.
     All questions have variablename, message and an optional default.

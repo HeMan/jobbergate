@@ -13,7 +13,7 @@ from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
-from jobbergate import appform, jobInquirer
+from jobbergate import jobInquirer
 
 
 def flatten(deeplist):
@@ -45,7 +45,8 @@ def ask_questions(fields, answerfile, use_defaults=False):
     retval = {}
 
     # Omit any questions that have already been answered
-    questions = [field for field in flatten(fields) if field.variablename not in answerfile]
+    questions = [field for field in flatten(fields) \
+                if field.variablename not in answerfile]
     try:
         retval.update(jobInquirer.prompt(questions, use_defaults))
     except TypeError:

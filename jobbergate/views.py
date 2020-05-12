@@ -33,7 +33,7 @@ from wtforms.fields import (
 )
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
-from jobbergate import appform, jobInquirer
+from jobbergate import appform
 from jobbergate.models import User
 
 from jobbergate import users
@@ -206,7 +206,7 @@ def application(application_name):
         return Response(
             jinjatemplate.render(data=data),
             mimetype="text/x-shellscript",
-            headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
+            headers={"Content-Disposition": "attachment;filename=jobfile.sh"},
         )
 
     session["data"] = json.dumps(data)
@@ -293,7 +293,7 @@ def renderworkflow(application_name, workflow):
         return Response(
             jinjatemplate.render(data=data),
             mimetype="text/x-shellscript",
-            headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
+            headers={"Content-Disposition": "attachment;filename=jobfile.sh"},
         )
 
     return render_template(
