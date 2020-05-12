@@ -13,10 +13,10 @@ Simplest `view.py`:
 
 .. code-block:: python
 
-    from jobbergate import appform
+    from jobbergate import appform, jobInquirer
 
     def mainflow(data):
-        return [appform.Text('jobbname', 'What is the jobbname', default='MyJob')]
+        return [jobInquirer.Text('jobbname', 'What is the jobbname', default='MyJob')]
 
 
 View with decorator workflow
@@ -32,18 +32,18 @@ to select between debug and precision workflow. debug gives the boolean question
 
 .. code-block:: python
 
-    from jobbergate import appform
+    from jobbergate import appform, jobInquirer
 
     def mainflow(data):
-        return [appform.Text('jobbname', 'What is the jobbname', default='MyJob')]
+        return [jobInquirer.Text('jobbname', 'What is the jobbname', default='MyJob')]
 
     @appform.workflow
     def debug(data):
-        return [appform.Confirm('debugoptions', 'Add extra debug flags')]
+        return [jobInquirer.Confirm('debugoptions', 'Add extra debug flags')]
 
     @appform.workflow
     def precision(data):
-        return [appform.Integer('precision', 'Steps per mm', minval=1, maxval=100)]
+        return [jobInquirer.Integer('precision', 'Steps per mm', minval=1, maxval=100)]
 
 
 View with ``nextworkflow`` question
@@ -55,14 +55,14 @@ This should not have any function decorated with ``@appform.workflow``.
 
 .. code-block:: python
 
-    from jobbergate import appform
+    from jobbergate import appform, jobInquirer
 
     def mainflow(data):
-        return [appform.Text('jobbname', 'What is the jobbname'),
-                appform.List('nextworkflow', ['precision', 'debug'])]
+        return [jobInquirer.Text('jobbname', 'What is the jobbname'),
+                jobInquirer.List('nextworkflow', ['precision', 'debug'])]
 
     def debug(data):
-        return [appform.Confirm('debugoptions', 'Add extra debug flags')]
+        return [jobInquirer.Confirm('debugoptions', 'Add extra debug flags')]
 
     def precision(data):
-        return [appform.Integer('precision', 'Steps per mm', minval=1, maxval=100)]
+        return [jobInquirer.Integer('precision', 'Steps per mm', minval=1, maxval=100)]

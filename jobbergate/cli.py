@@ -8,13 +8,12 @@ from copy import deepcopy
 from pathlib import Path
 import json
 import click
-import inquirer
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from flask.cli import with_appcontext
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
-from jobbergate import appform
+from jobbergate import appform, jobInquirer
 
 
 def flatten(deeplist):
@@ -33,133 +32,22 @@ def flatten(deeplist):
     return out
 
 
-def parse_field(field, ignore=None):
-    """Parses the question field and returns a list of inquirer questions.
-
-    :param jobbergate.appform.QuestionBase field: The question to parse
-    :param ignore: function to decide if the question should be ignored/hidden
-    :returns: inquirer question
-    :rtype: inquirer.Question
-    """
-    if isinstance(field, appform.Text):
-        return inquirer.Text(
-            field.variablename,
-            message=field.message,
-            default=field.default,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.Integer):
-        return inquirer.Text(
-            field.variablename,
-            message=field.message,
-            default=field.default,
-            validate=field.validate,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.List):
-        return inquirer.List(
-            field.variablename,
-            message=field.message,
-            choices=field.choices,
-            default=field.default,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.Directory):
-        return inquirer.Path(
-            field.variablename,
-            message=field.message,
-            path_type=inquirer.Path.DIRECTORY,
-            default=field.default,
-            exists=field.exists,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.File):
-        return inquirer.Path(
-            field.variablename,
-            message=field.message,
-            path_type=inquirer.Path.FILE,
-            default=field.default,
-            exists=field.exists,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.Checkbox):
-        return inquirer.Checkbox(
-            field.variablename,
-            message=field.message,
-            choices=field.choices,
-            default=field.default,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.Confirm):
-        return inquirer.Confirm(
-            field.variablename,
-            message=field.message,
-            default=field.default,
-            ignore=ignore,
-        )
-
-    if isinstance(field, appform.BooleanList):
-        retval = [
-            inquirer.Confirm(
-                field.variablename,
-                message=field.message,
-                default=field.default,
-                ignore=ignore,
-            )
-        ]
-
-        if field.whenfalse:
-            retval.extend(
-                [parse_field(wf, ignore=field.ignore) for wf in field.whenfalse]
-            )
-        if field.whentrue:
-            retval.extend(
-                [parse_field(wt, ignore=field.noignore) for wt in field.whentrue]
-            )
-
-        return retval
-
-    if isinstance(field, appform.Const):
-        return inquirer.Text(
-            field.variablename, message="", default=field.default, ignore=True,
-        )
-
-
 def ask_questions(fields, answerfile, use_defaults=False):
     """Asks the questions from all the fields.
 
-    :param list[jobbergate.appform.QuestionBase] fields: List with questions
+    :param list[jobbergate.jobInquirer.QuestionBase] fields: List with questions
     :param dict answerfile: dict with prepopulated answers
     :param bool use_defaults: option to use default value instead of asking, when possible
     :returns: all answers
     :rtype: dict
     """
     questions = []
-    questionstoask = []
     retval = {}
 
-    while fields:
-        field = fields.pop(0)
-        question = parse_field(field)
-        questions.append(question)
-
-    # Check if questions has already been answered
-    for question in flatten(questions):
-        if question.name in answerfile:
-            pass
-        elif use_defaults and question.default is not None:
-            retval.update({question.name: question.default})
-            print(f"Default used: {question.name}={question.default}")
-        else:
-            questionstoask.append(question)
+    # Omit any questions that have already been answered
+    questions = [field for field in flatten(fields) if field.variablename not in answerfile]
     try:
-        retval.update(inquirer.prompt(questionstoask))
+        retval.update(jobInquirer.prompt(questions, use_defaults))
     except TypeError:
         exit(0)
 

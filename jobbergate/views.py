@@ -39,7 +39,7 @@ from wtforms.fields import (
 from wtforms.validators import InputRequired, NumberRange
 
 from jobbergate.lib import jobbergateconfig, fullpath_import
-from jobbergate import appform
+from jobbergate import appform, jobInquirer
 from jobbergate.models import User
 
 from jobbergate import users
@@ -47,135 +47,6 @@ from jobbergate import users
 main_blueprint = Blueprint("main", __name__, template_folder="templates")
 
 
-def parse_field(form, field, render_kw=None):
-    """Parses the question field and populates a FlaskForm with the fields.
-
-    :param FlaskForm form: The form to populate
-    :param jobbergate.appform.QuestionBase field: The question to parse
-    :param render_kw: extra attributes for the field
-    :returns: Form with all the fields
-    :rtype: FlaskForm
-    """
-    if isinstance(field, appform.Text):
-        setattr(
-            form,
-            field.variablename,
-            StringField(
-                field.message,
-                validators=[InputRequired()],
-                default=field.default,
-                render_kw=render_kw,
-            ),
-        )
-    if isinstance(field, appform.Integer):
-        setattr(
-            form,
-            field.variablename,
-            IntegerField(
-                field.message,
-                default=field.default,
-                validators=[
-                    InputRequired(),
-                    NumberRange(min=field.minval, max=field.maxval),
-                ],
-                render_kw=render_kw,
-            ),
-        )
-    if isinstance(field, appform.List):
-        choices = []
-        for choice in field.choices:
-            if not isinstance(choice, tuple):
-                choices.append((str(choice), str(choice)))
-            else:
-                choices.append((choice[1], choice[0]))
-        setattr(
-            form,
-            field.variablename,
-            SelectField(
-                field.message,
-                default=field.default,
-                choices=choices,
-                render_kw=render_kw,
-            ),
-        )
-
-    if isinstance(field, (appform.Directory, appform.File)):
-        setattr(
-            form,
-            field.variablename,
-            StringField(field.message, default=field.default, render_kw=render_kw),
-        )
-
-    if isinstance(field, appform.Checkbox):
-        choices = []
-        for choice in field.choices:
-            if not isinstance(choice, tuple):
-                choices.append((str(choice), str(choice)))
-            else:
-                choices.append((choice[1], choice[0]))
-        setattr(
-            form,
-            field.variablename,
-            SelectMultipleField(
-                field.message,
-                default=field.default,
-                choices=choices,
-                render_kw=render_kw,
-            ),
-        )
-
-    if isinstance(field, appform.Confirm):
-        setattr(
-            form,
-            field.variablename,
-            BooleanField(field.message, default=field.default, render_kw=render_kw),
-        )
-
-    if isinstance(field, appform.BooleanList):
-        fieldid = 0
-
-        class FalseForm(FlaskForm):
-            pass
-
-        class TrueForm(FlaskForm):
-            pass
-
-        if field.whenfalse:
-            for wf in field.whenfalse:
-                FalseForm = parse_field(
-                    FalseForm,
-                    wf,
-                    render_kw={"id": f"{field.variablename}_false_{fieldid}"},
-                )
-                fieldid += 1
-        if field.whentrue:
-            for wt in field.whentrue:
-                TrueForm = parse_field(
-                    TrueForm,
-                    wt,
-                    render_kw={"id": f"{field.variablename}_true_{fieldid}"},
-                )
-                fieldid += 1
-        setattr(
-            form,
-            field.variablename,
-            BooleanField(
-                field.message,
-                default=field.default,
-                render_kw={"onchange": "toggle_questions(this);"},
-            ),
-        )
-        setattr(form, f"{field.variablename}_trueform", FormField(TrueForm, label=""))
-        setattr(form, f"{field.variablename}_falseform", FormField(FalseForm, label=""))
-
-    if isinstance(field, appform.Const):
-        setattr(
-            form,
-            field.variablename,
-            HiddenField(field.variablename, default=field.default),
-        )
-
-    return form
 
 
 def form_generator(application_name, templates, workflow):
@@ -208,7 +79,7 @@ def form_generator(application_name, templates, workflow):
     questions = workflow(data)
     while questions:
         field = questions.pop(0)
-        QuestioneryForm = parse_field(QuestioneryForm, field)
+        QuestioneryForm = field.populateFlaskForm(QuestioneryForm)
 
     if appform.workflows:
         choices = [(None, "--- Select ---")]

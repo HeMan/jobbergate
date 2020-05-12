@@ -14,10 +14,10 @@ views.py:
 
 .. code-block:: python
 
-  from jobbergate import appform
+  from jobbergate import appform, jobInquirer
 
   def mainflow(data):
-      return [appform.Text("jobname", "What is the jobname?", default="simulation")]
+      return [jobInquirer.Text("jobname", "What is the jobname?", default="simulation")]
 
 job_template.j2:
 
@@ -39,18 +39,18 @@ views.py:
 
 .. code-block:: python
 
-  from jobbergate import appform
+  from jobbergate import appform, jobInquirer
 
   def mainflow(data):
-      return [appform.Text("jobname", "What is the jobname?", default="simulation")]
+      return [jobInquirer.Text("jobname", "What is the jobname?", default="simulation")]
 
   @appform.workflow
   def debug(data):
-      return [appform.Confirm("debug", "Add debug info?")]
+      return [jobInquirer.Confirm("debug", "Add debug info?")]
 
   @appform.workflow
   def gpu(data):
-      return [appform.Integer("gpus", "Number of gpus?", default=1, maxval=10)]
+      return [jobInquirer.Integer("gpus", "Number of gpus?", default=1, maxval=10)]
 
 job_template.j2:
 

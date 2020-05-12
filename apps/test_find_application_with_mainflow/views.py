@@ -1,5 +1,5 @@
-from jobbergate import appform
+from jobbergate import appform, jobInquirer
 
 
 def mainflow(data):
-    return [appform.Const("val", default=10)]
+    return [jobInquirer.Const("val", default=10)]
