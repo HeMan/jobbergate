@@ -414,7 +414,7 @@ class BooleanList(QuestionBase):
                 fieldid += 1
         if self.whentrue:
             for wt in self.whentrue:
-                TrueForm = wf.populateFlaskForm(
+                TrueForm = wt.populateFlaskForm(
                     TrueForm,
                     render_kw={"id": f"{self.variablename}_true_{fieldid}"},
                 )
