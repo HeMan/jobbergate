@@ -343,7 +343,7 @@ def application(application_name):
         return Response(
             jinjatemplate.render(data=data),
             mimetype="text/x-shellscript",
-            headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
+            headers={"Content-Disposition": "attachment;filename=jobfile.sh"},
         )
 
     session["data"] = json.dumps(data)
@@ -430,7 +430,7 @@ def renderworkflow(application_name, workflow):
         return Response(
             jinjatemplate.render(data=data),
             mimetype="text/x-shellscript",
-            headers={"Content-Disposition": f"attachment;filename=jobfile.sh"},
+            headers={"Content-Disposition": "attachment;filename=jobfile.sh"},
         )
 
     return render_template(
