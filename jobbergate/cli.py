@@ -127,7 +127,10 @@ def parse_field(field, ignore=None):
 
     if isinstance(field, appform.Const):
         return inquirer.Text(
-            field.variablename, message="", default=field.default, ignore=True,
+            field.variablename,
+            message="",
+            default=field.default,
+            ignore=True,
         )
 
 
