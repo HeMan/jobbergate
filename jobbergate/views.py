@@ -350,7 +350,9 @@ def application(application_name):
     if "views" in sys.modules:
         del sys.modules["views"]
     return render_template(
-        "main/form.html", form=questionsform, application_name=application_name,
+        "main/form.html",
+        form=questionsform,
+        application_name=application_name,
     )
 
 
@@ -434,7 +436,9 @@ def renderworkflow(application_name, workflow):
         )
 
     return render_template(
-        "main/form.html", form=questionsform, application_name=application_name,
+        "main/form.html",
+        form=questionsform,
+        application_name=application_name,
     )
 
 
