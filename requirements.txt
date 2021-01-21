@@ -7,5 +7,5 @@ Flask-Migrate==2.5.2
 Flask-SQLAlchemy==2.4.1
 Flask-WTF==0.14.3
 flask-ldap3-login==0.9.16
-PyYAML==5.3.1
+PyYAML==5.4
 inquirer==2.6.3
