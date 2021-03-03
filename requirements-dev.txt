@@ -6,7 +6,7 @@ flake8-black
 flask-shell-ipython
 ipython
 jedi
-pylint
+pylint>=2.5.0
 pytest
 pytest-mock
 tox
