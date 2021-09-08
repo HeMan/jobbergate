@@ -9,3 +9,4 @@ Flask-WTF==0.14.3
 flask-ldap3-login==0.9.16
 PyYAML==5.4.1
 inquirer==2.7.0
+wtforms>=3.0.0a1 # not directly required, pinned by Snyk to avoid a vulnerability
