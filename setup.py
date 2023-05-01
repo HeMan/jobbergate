@@ -20,7 +20,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        "Flask==1.1.1",
+        "Flask==2.3.2",
         "Flask-Bcrypt==0.7.1",
         "Flask-Bootstrap==3.3.7.1",
         "Flask-DebugToolbar==0.10.1",
